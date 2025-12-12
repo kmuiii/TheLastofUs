@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Last Of Us - Inventory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Antonio', sans-serif;
+            background-image: url('images/bg inventory.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.60);
+            z-index: 0;
+        }
+
+        .navbar {
+            background-color: rgba(101, 101, 101, 0.95);
+            padding: 20px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 2px 10px rgba(0, 0, 0, 0.6);
+        }
+
+        .navbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('images/Frame 39.png');
+            background-size: cover;
+            background-position: center;
+            opacity: 50;
+            mix-blend-mode: multiply;
+            pointer-events: none;
+        }
+
+        .logo {
+            font-size: 42px;
+            font-weight: 700;
+            color: #d4d4d4;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-menu li {
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .nav-menu li.active {
+            color: #b85c38;
+        }
+
+        .nav-menu li:not(.active) {
+            color: #d4d4d4;
+        }
+
+        .nav-menu li:hover {
+            color: #b85c38;
+        }
+
+        .user-info span {
+            color: #d4d4d4;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .main-content {
+            padding: 40px 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 72px;
+            font-weight: 700;
+            color: #d4d4d4;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            font-size: 28px;
+            font-weight: 400;
+            color: #a8a8a8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .inventory-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .inventory-panel {
+            background: linear-gradient(135deg, #6a6a6a 0%, #4a4a4a 50%, #3a3a3a 100%);
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.9), 
+                0 6px 20px rgba(0, 0, 0, 0.7),
+                inset 0 2px 4px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .panel-inner {
+            background-color: rgba(33, 28, 25, 0.95);
+            background-image: url('images/Group 8 (1).png');
+            background-size: cover;
+            background-blend-mode: multiply;
+            border-radius: 4px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .panel-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #d4d4d4;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .backpack-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .item-slot {
+            aspect-ratio: 1;
+            background: rgba(20, 20, 20, 0.9);
+            border: 3px solid rgba(80, 80, 80, 0.5);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            transition: all 0.3s;
+            position: relative;
+            padding: 10px;
+        }
+
+        .item-slot.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .item-slot.has-item {
+            border-color: rgba(120, 120, 120, 0.8);
+        }
+
+        .item-slot img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        /* Border warna untuk kategori */
+        .item-slot[data-category="tools"] {
+            border-color: rgba(184, 92, 56, 0.4);
+        }
+
+        .item-slot[data-category="weapons"] {
+            border-color: rgba(184, 92, 56, 0.4);
+        }
+
+        .item-slot[data-category="medkits"] {
+            border-color: rgba(184, 92, 56, 0.4);
+        }
+
+        .item-slot[data-category="throwables"] {
+            border-color: rgba(184, 92, 56, 0.4);
+        }
+
+        .backpack-slot {
+            aspect-ratio: 1;
+            background: rgba(20, 20, 20, 0.9);
+            border: 3px solid rgba(184, 92, 56, 0.4);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            padding: 10px;
+            max-height: 140px;
+        }
+
+        .backpack-slot.drag-over {
+            background: rgba(184, 92, 56, 0.3);
+            border-color: #b85c38;
+        }
+
+        .backpack-slot img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .backpack-info {
+            background: rgba(20, 20, 20, 0.6);
+            border: 2px solid rgba(184, 92, 56, 0.4);
+            border-radius: 8px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+        }
+
+        .item-counter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .counter-label {
+            font-size: 20px;
+            font-weight: 700;
+            color: #d4d4d4;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .counter-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #b85c38;
+            letter-spacing: 2px;
+        }
+
+        .counter-value span {
+            color: #888;
+            font-size: 28px;
+        }
+
+        .loadout-tip {
+            background: rgba(184, 92, 56, 0.15);
+            border-left: 4px solid #b85c38;
+            padding: 15px 18px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+
+        .tip-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #b85c38;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 8px;
+        }
+
+        .tip-text {
+            font-size: 15px;
+            color: #c8c8c8;
+            line-height: 1.5;
+            letter-spacing: 0.5px;
+            transition: opacity 0.3s ease;
+        }
+
+        .category-badges {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .category-badge {
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            border: 2px solid;
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+
+        .category-badge.active {
+            opacity: 1;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .category-badge.medkits {
+            color: #28a745;
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+
+        .category-badge.weapons {
+            color: #ffc107;
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        .category-badge.throwables {
+            color: #007bff;
+            border-color: #007bff;
+            background: rgba(0, 123, 255, 0.1);
+        }
+
+        .category-badge.tools {
+            color: #dc3545;
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+        }
+
+        .categories-section {
+            border-top: 2px solid rgba(120, 120, 120, 0.3);
+            padding-top: 25px;
+            margin-top: 25px;
+        }
+
+        .categories-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #d4d4d4;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(184, 92, 56, 0.4);
+            background: rgba(40, 40, 40, 0.8);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .checkbox.checked {
+            background: #b85c38;
+            border-color: #b85c38;
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .category-label {
+            font-size: 18px;
+            font-weight: 700;
+            color: #d4d4d4;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: auto;
+            padding-top: 20px;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 18px;
+            background: #6E3420;
+            border: none;
+            border-radius: 50px;
+            color: #f0f0f0;
+            font-size: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Antonio', sans-serif;
+            box-shadow: 0 4px 15px rgba(110, 52, 32, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .action-button:hover {
+            background: #8B4626;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(110, 52, 32, 0.6);
+        }
+
+        .rivet {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: radial-gradient(circle, #a8a8a8 0%, #707070 40%, #4a4a4a 80%, #2a2a2a 100%);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 2px 3px rgba(0, 0, 0, 0.6), 
+                inset 0 -1px 2px rgba(255, 255, 255, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            border: 1px solid rgba(80, 80, 80, 0.5);
+        }
+
+        .rivet-tl { top: 20px; left: 20px; }
+        .rivet-tr { top: 20px; right: 20px; }
+        .rivet-bl { bottom: 20px; left: 20px; }
+        .rivet-br { bottom: 20px; right: 20px; }
+
+        @media (max-width: 1200px) {
+            .inventory-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">THE LAST OF US</div>
+        <div style="display: flex; align-items: center; gap: 60px; position: relative; z-index: 1;">
+            <div class="user-info">
+                <span id="userGreeting">HI, USERNAME</span>
+            </div>
+            <ul class="nav-menu">
+                <li onclick="window.location.href='story.html'">STORY</li>
+                <li onclick="window.location.href='character.html'">CHARACTER</li>
+                <li class="active">INVENTORY</li>
+                <li onclick="window.location.href='detail.html'">DETAIL</li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">INVENTORY SELECTION</h1>
+            <p class="page-subtitle">DRAG ITEM TO YOUR BACKPACK</p>
+        </div>
+
+        <div class="inventory-container">
+            <!-- Available Gear Panel -->
+            <div class="inventory-panel">
+                <div class="rivet rivet-tl"></div>
+                <div class="rivet rivet-tr"></div>
+                <div class="rivet rivet-bl"></div>
+                <div class="rivet rivet-br"></div>
+                
+                <div class="panel-inner">
+                    <h2 class="panel-title">AVAILABLE GEAR</h2>
+                    
+                    <div class="items-grid" id="availableGear">
+                        <!-- Item 1: Wrench (Tools - Red) -->
+                        <div class="item-slot has-item" data-category="tools" data-item-id="1" draggable="true">
+                            <img src="images/senter.png" alt="Wrench">
+                        </div>
+                        
+                        <!-- Item 2: Pistol (Weapons - Yellow) -->
+                        <div class="item-slot has-item" data-category="weapons" data-item-id="2" draggable="true">
+                            <img src="images/pistol.png" alt="Pistol">
+                        </div>
+                        
+                        <!-- Item 3: Knife (Weapons - Yellow) -->
+                        <div class="item-slot has-item" data-category="weapons" data-item-id="3" draggable="true">
+                            <img src="images/pisau.png" alt="Knife">
+                        </div>
+                        
+                        <!-- Item 4: Axe (Tools - Red) -->
+                        <div class="item-slot has-item" data-category="weapons" data-item-id="4" draggable="true">
+                            <img src="images/kapak.png" alt="Axe">
+                        </div>
+                        
+                        <!-- Item 5: Compass (Tools - Red) -->
+                        <div class="item-slot has-item" data-category="tools" data-item-id="5" draggable="true">
+                            <img src="images/kompas.png" alt="Compass">
+                        </div>
+                        
+                        <!-- Item 6: Rifle (Weapons - Yellow) -->
+                        <div class="item-slot has-item" data-category="weapons" data-item-id="6" draggable="true">
+                            <img src="images/tembakan.png" alt="Rifle">
+                        </div>
+                        
+                        <!-- Item 7: Med Kit (Medkits - Green) -->
+                        <div class="item-slot has-item" data-category="medkits" data-item-id="7" draggable="true">
+                            <img src="images/medkit.png" alt="Med Kit">
+                        </div>
+                        
+                        <!-- Item 8: Bow (Weapons - Yellow) -->
+                        <div class="item-slot has-item" data-category="weapons" data-item-id="8" draggable="true">
+                            <img src="images/panah.png" alt="Bow">
+                        </div>
+                        
+                        <!-- Item 9: Grenade (Throwables - Blue) -->
+                        <div class="item-slot has-item" data-category="throwables" data-item-id="9" draggable="true">
+                            <img src="images/granat.png" alt="Grenade">
+                        </div>
+                    </div>
+
+                    <div class="categories-section">
+                        <h3 class="categories-title">ITEM CATEGORIES</h3>
+                        <div class="category-item" onclick="toggleCategory('medkits')">
+                            <div class="checkbox" id="checkbox-medkits"></div>
+                            <span class="category-label">MEDKITS</span>
+                        </div>
+                        <div class="category-item" onclick="toggleCategory('weapons')">
+                            <div class="checkbox" id="checkbox-weapons"></div>
+                            <span class="category-label">WEAPONS</span>
+                        </div>
+                        <div class="category-item" onclick="toggleCategory('throwables')">
+                            <div class="checkbox" id="checkbox-throwables"></div>
+                            <span class="category-label">THROWABLES</span>
+                        </div>
+                        <div class="category-item" onclick="toggleCategory('tools')">
+                            <div class="checkbox" id="checkbox-tools"></div>
+                            <span class="category-label">TOOLS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Your Backpack Panel -->
+            <div class="inventory-panel">
+                <div class="rivet rivet-tl"></div>
+                <div class="rivet rivet-tr"></div>
+                <div class="rivet rivet-bl"></div>
+                <div class="rivet rivet-br"></div>
+                
+                <div class="panel-inner">
+                    <h2 class="panel-title">YOUR BACKPACK</h2>
+                    
+                    <div class="backpack-grid" id="backpack">
+                        <div class="backpack-slot" data-slot="0"></div>
+                        <div class="backpack-slot" data-slot="1"></div>
+                        <div class="backpack-slot" data-slot="2"></div>
+                        <div class="backpack-slot" data-slot="3"></div>
+                        <div class="backpack-slot" data-slot="4"></div>
+                        <div class="backpack-slot" data-slot="5"></div>
+                    </div>
+
+                    <!-- Backpack Info Section -->
+                    <div class="backpack-info">
+                        <div class="item-counter">
+                            <span class="counter-label">Items Selected:</span>
+                            <span class="counter-value"><span id="itemCount">0</span>/6</span>
+                        </div>
+                        
+                        <div class="category-badges">
+                            <div class="category-badge medkits" id="badge-medkits">Medkits</div>
+                            <div class="category-badge weapons" id="badge-weapons">Weapons</div>
+                            <div class="category-badge throwables" id="badge-throwables">Throwables</div>
+                            <div class="category-badge tools" id="badge-tools">Tools</div>
+                        </div>
+
+                        <div class="loadout-tip">
+                            <div class="tip-label">💡 Survival Tip</div>
+                            <div class="tip-text" id="tipText">Balance your loadout with weapons, tools, and supplies for maximum survival.</div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="action-button" onclick="clearBackpack()">CLEAR ALL</button>
+                        <button class="action-button" onclick="confirmLoadout()">
+                            CONFIRM LOADOUT →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const categories = {
+            medkits: false,
+            weapons: false,
+            throwables: false,
+            tools: false
+        };
+
+        const survivalTips = [
+            "Always carry at least one medkit for emergencies.",
+            "Balance your loadout for maximum survival.",
+            "Stealth weapons like bows are quieter than firearms.",
+            "Tools can help you craft essential items in the field.",
+            "Throwables are effective for crowd control situations.",
+            "Heavy weapons slow you down - pack wisely.",
+            "A compass can save your life when navigation fails."
+        ];
+
+        let currentTipIndex = 0;
+        let itemCount = 0;
+
+        // Load username
+        window.addEventListener('DOMContentLoaded', function() {
+            const username = localStorage.getItem('username');
+            if (username) {
+                document.getElementById('userGreeting').textContent = 'HI, ' + username.toUpperCase();
+            }
+            
+            setupDragAndDrop();
+            rotateTips();
+        });
+
+        function rotateTips() {
+            setInterval(() => {
+                currentTipIndex = (currentTipIndex + 1) % survivalTips.length;
+                document.getElementById('tipText').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('tipText').textContent = survivalTips[currentTipIndex];
+                    document.getElementById('tipText').style.opacity = '1';
+                }, 300);
+            }, 8000);
+        }
+
+        function updateItemCount() {
+            document.getElementById('itemCount').textContent = itemCount;
+        }
+
+        function updateCategoryBadge(category, active) {
+            const badge = document.getElementById(`badge-${category}`);
+            if (active) {
+                badge.classList.add('active');
+            } else {
+                badge.classList.remove('active');
+            }
+        }
+
+        function setupDragAndDrop() {
+            const itemSlots = document.querySelectorAll('.item-slot[draggable="true"]');
+            const backpackSlots = document.querySelectorAll('.backpack-slot');
+
+            itemSlots.forEach(slot => {
+                slot.addEventListener('dragstart', handleDragStart);
+                slot.addEventListener('dragend', handleDragEnd);
+            });
+
+            backpackSlots.forEach(slot => {
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('dragleave', handleDragLeave);
+                slot.addEventListener('drop', handleDrop);
+            });
+        }
+
+        let draggedItem = null;
+
+        function handleDragStart(e) {
+            draggedItem = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            if (draggedItem && e.currentTarget.classList.contains('backpack-slot')) {
+                const category = draggedItem.getAttribute('data-category');
+                
+                if (!e.currentTarget.hasChildNodes()) {
+                    // Clone item ke backpack
+                    const itemCopy = draggedItem.querySelector('img').cloneNode(true);
+                    e.currentTarget.appendChild(itemCopy);
+                    
+                    // Update kategori
+                    updateCategory(category, true);
+                    updateCategoryBadge(category, true);
+                    
+                    // Update item count
+                    itemCount++;
+                    updateItemCount();
+                    
+                    // Hide item dari available gear
+                    draggedItem.style.display = 'none';
+                }
+            }
+        }
+
+        function updateCategory(category, checked) {
+            categories[category] = checked;
+            const checkbox = document.getElementById(`checkbox-${category}`);
+            if (checked) {
+                checkbox.classList.add('checked');
+            } else {
+                checkbox.classList.remove('checked');
+            }
+        }
+
+        function toggleCategory(category) {
+            categories[category] = !categories[category];
+            updateCategory(category, categories[category]);
+        }
+
+        function clearBackpack() {
+            const backpackSlots = document.querySelectorAll('.backpack-slot');
+            backpackSlots.forEach(slot => {
+                slot.innerHTML = '';
+            });
+            
+            // Reset categories
+            Object.keys(categories).forEach(cat => {
+                updateCategory(cat, false);
+                updateCategoryBadge(cat, false);
+            });
+            
+            // Reset item count
+            itemCount = 0;
+            updateItemCount();
+            
+            // Show all items again
+            const itemSlots = document.querySelectorAll('.item-slot[draggable="true"]');
+            itemSlots.forEach(slot => {
+                slot.style.display = 'flex';
+            });
+        }
+
+        function confirmLoadout() {
+            const backpackSlots = document.querySelectorAll('.backpack-slot');
+            let itemCount = 0;
+            
+            backpackSlots.forEach(slot => {
+                if (slot.hasChildNodes()) itemCount++;
+            });
+            
+            if (itemCount === 0) {
+                alert('Please add at least one item to your backpack!');
+                return;
+            }
+            
+            alert('Loadout confirmed! Redirecting to details...');
+            window.location.href = 'detail.html';
+        }
+    </script>
+</body>
+</html>

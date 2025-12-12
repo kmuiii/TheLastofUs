@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Last Of Us - Survivor Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Antonio', sans-serif;
+            background-image: url('images/background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 40px 20px;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 0;
+        }
+
+        .login-container {
+            display: flex;
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(27, 27, 27, 0.8);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+            position: relative;
+            z-index: 1;
+        }
+
+        .poster-section {
+            flex: 1;
+            background: rgba(27, 27, 27, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 40px;
+            position: relative;
+        }
+
+        .poster-image {
+            max-width: 100%;
+            max-height: 700px;
+            object-fit: contain;
+            position: relative;
+            z-index: 2;
+        }
+
+        .login-section {
+            flex: 1;
+            padding: 80px 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            background: transparent;
+        }
+
+        .login-content {
+            position: relative;
+            z-index: 1;
+            background-color: rgba(11, 9, 8, 0.9);
+            border: 3px solid rgba(184, 92, 56, 0.6);
+            border-radius: 8px;
+            padding: 50px 45px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+        }
+
+        .login-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('images/Group 8 (1).png');
+            background-size: cover;
+            background-position: center;
+            opacity: 10;
+            mix-blend-mode: multiply;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .login-title {
+            text-align: center;
+            color: #f0f0f0;
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .input-group {
+            margin-bottom: 22px;
+            position: relative;
+            z-index: 1;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(40, 35, 30, 0.9);
+            border: 2px solid rgba(100, 80, 70, 0.5);
+            border-radius: 4px;
+            color: #aaa;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            font-family: 'Antonio', sans-serif;
+            position: relative;
+            z-index: 1;
+        }
+
+        input::placeholder {
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #b85c38;
+            background: rgba(45, 40, 35, 0.95);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: #6E3420;
+            border: none;
+            border-radius: 50px;
+            color: #f0f0f0;
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(110, 52, 32, 0.4);
+            font-family: 'Antonio', sans-serif;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-btn:hover {
+            background: #8B4626;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(110, 52, 32, 0.6);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .links a {
+            color: #d4d4d4;
+            text-decoration: none;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+            margin: 10px 0;
+            transition: color 0.3s;
+        }
+
+        .links a:hover {
+            color: #b85c38;
+        }
+
+        @media (max-width: 968px) {
+            .login-container {
+                flex-direction: column;
+            }
+
+            .poster-section {
+                padding: 40px 20px;
+            }
+
+            .poster-image {
+                max-height: 400px;
+            }
+
+            .login-section {
+                padding: 60px 40px;
+            }
+
+            .login-content {
+                padding: 40px 35px;
+            }
+
+            .login-title {
+                font-size: 32px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .login-section {
+                padding: 40px 20px;
+            }
+
+            .login-content {
+                padding: 35px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Poster Section -->
+        <div class="poster-section">
+            <img src="images/tlou login.png" alt="The Last Of Us" class="poster-image">
+        </div>
+
+        <!-- Login Section -->
+        <div class="login-section">
+            <div class="login-content">
+                <h1 class="login-title">SURVIVOR LOGIN</h1>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <input type="text" id="username" placeholder="EMAIL OR USERNAME" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="password" placeholder="PASSWORD" required>
+                    </div>
+                    <button type="submit" class="login-btn">LOGIN</button>
+                    <div class="links">
+                        <a href="#" onclick="alert('Fitur reset password belum tersedia'); return false;">FORGOT PASSWORD?</a>
+                        <a href="#" onclick="alert('Fitur registrasi belum tersedia'); return false;">CREATE ACCOUNT?</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username && password) {
+                // Simpan username ke localStorage
+                localStorage.setItem('username', username);
+                localStorage.setItem('isLoggedIn', 'true');
+                
+                // Redirect ke story page
+                window.location.href = 'story.html';
+            } else {
+                alert('Mohon isi username dan password!');
+            }
+        });
+    </script>
+</body>
+</html>
