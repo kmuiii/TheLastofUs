@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Last Of Us - Mission Result</title>
+    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Antonio', sans-serif;
+            background-image: url('images/bg character.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 0;
+        }
+
+        .result-container {
+            background: linear-gradient(135deg, #6a6a6a 0%, #4a4a4a 50%, #3a3a3a 100%);
+            border-radius: 12px;
+            padding: 15px;
+            position: relative;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.95), 
+                0 10px 30px rgba(0, 0, 0, 0.8),
+                inset 0 2px 4px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+            max-width: 800px; /* Reduced from 900px */
+            width: 100%;
+            z-index: 1;
+            margin: auto;
+        }
+
+        .result-container::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            background-color: rgba(20, 19, 19, 0.95);
+            background-image: url('images/Group 8 (1).png');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: multiply;
+            pointer-events: none;
+            border-radius: 4px;
+            z-index: 1;
+        }
+
+        .result-inner {
+            position: relative;
+            z-index: 2;
+            padding: 40px 50px; /* Reduced padding */
+            text-align: center;
+        }
+
+        .status-icon {
+            font-size: 100px; /* Reduced from 120px */
+            margin-bottom: 20px; /* Reduced from 30px */
+            animation: pulse 2s infinite;
+            color: #28a745; /* Changed to green color */
+            text-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .result-title {
+            font-size: 60px; /* Reduced from 72px */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 15px; /* Reduced from 20px */
+        }
+
+        .result-title.success {
+            color: #28a745;
+            text-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
+        }
+
+        .result-title.failed {
+            color: #dc3545;
+            text-shadow: 0 0 20px rgba(220, 53, 69, 0.5);
+        }
+
+        .result-subtitle {
+            font-size: 22px; /* Reduced from 24px */
+            color: #a8a8a8;
+            margin-bottom: 40px; /* Reduced from 50px */
+            letter-spacing: 2px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px; /* Reduced from 30px */
+            margin-bottom: 40px; /* Reduced from 50px */
+        }
+
+        .stat-card {
+            background: rgba(20, 20, 20, 0.6);
+            border: 3px solid rgba(184, 92, 56, 0.4);
+            border-radius: 8px;
+            padding: 25px 15px; /* Reduced padding */
+        }
+
+        .stat-label {
+            font-size: 15px; /* Reduced from 16px */
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px; /* Reduced from 15px */
+        }
+
+        .stat-value {
+            font-size: 42px; /* Reduced from 48px */
+            font-weight: 700;
+            color: #d4d4d4;
+            letter-spacing: 2px;
+        }
+
+        .stat-value.success {
+            color: #28a745;
+        }
+
+        .stat-value.failed {
+            color: #dc3545;
+        }
+
+        .rank-section {
+            background: rgba(184, 92, 56, 0.15);
+            border: 3px solid #b85c38;
+            border-radius: 8px;
+            padding: 25px; /* Reduced from 30px */
+            margin-bottom: 35px; /* Reduced from 40px */
+        }
+
+        .rank-title {
+            font-size: 18px; /* Reduced from 20px */
+            color: #b85c38;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px; /* Reduced from 15px */
+        }
+
+        .rank-value {
+            font-size: 50px; /* Reduced from 56px */
+            font-weight: 700;
+            color: #d4d4d4;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .rank-description {
+            font-size: 16px; /* Reduced from 18px */
+            color: #a8a8a8;
+            margin-top: 12px; /* Reduced from 15px */
+            line-height: 1.5; /* Reduced from 1.6 */
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .action-button {
+            padding: 18px 40px; /* Reduced padding */
+            background: #6E3420;
+            border: none;
+            border-radius: 50px;
+            color: #f0f0f0;
+            font-size: 18px; /* Reduced from 20px */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Antonio', sans-serif;
+            box-shadow: 0 4px 15px rgba(110, 52, 32, 0.4);
+        }
+
+        .action-button:hover {
+            background: #8B4626;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(110, 52, 32, 0.6);
+        }
+
+        .action-button.secondary {
+            background: rgba(80, 80, 80, 0.8);
+        }
+
+        .action-button.secondary:hover {
+            background: rgba(100, 100, 100, 0.9);
+        }
+
+        .rivet {
+            position: absolute;
+            width: 18px; /* Reduced from 20px */
+            height: 18px; /* Reduced from 20px */
+            background: radial-gradient(circle, #a8a8a8 0%, #707070 40%, #4a4a4a 80%, #2a2a2a 100%);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 2px 3px rgba(0, 0, 0, 0.6), 
+                inset 0 -1px 2px rgba(255, 255, 255, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            border: 1px solid rgba(80, 80, 80, 0.5);
+        }
+
+        .rivet-tl { top: 20px; left: 20px; } /* Adjusted positions */
+        .rivet-tr { top: 20px; right: 20px; }
+        .rivet-bl { bottom: 20px; left: 20px; }
+        .rivet-br { bottom: 20px; right: 20px; }
+
+        @media (max-width: 768px) {
+            .result-inner {
+                padding: 30px 25px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-title {
+                font-size: 42px; /* Reduced from 48px */
+            }
+            
+            .result-subtitle {
+                font-size: 18px;
+            }
+            
+            .rank-value {
+                font-size: 42px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-button {
+                padding: 16px 30px;
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .result-inner {
+                padding: 25px 20px;
+            }
+            
+            .result-title {
+                font-size: 36px;
+            }
+            
+            .status-icon {
+                font-size: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="result-container">
+        <div class="rivet rivet-tl"></div>
+        <div class="rivet rivet-tr"></div>
+        <div class="rivet rivet-bl"></div>
+        <div class="rivet rivet-br"></div>
+
+        <div class="result-inner">
+            <div class="status-icon" id="statusIcon">✓</div>
+            <h1 class="result-title" id="resultTitle">MISSION COMPLETE</h1>
+            <p class="result-subtitle" id="resultSubtitle">YOU SURVIVED THE INFECTED ZONE</p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Final Health</div>
+                    <div class="stat-value" id="finalHealth">85%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Final Stamina</div>
+                    <div class="stat-value" id="finalStamina">70%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Score</div>
+                    <div class="stat-value success" id="totalScore">750</div>
+                </div>
+            </div>
+
+            <div class="rank-section">
+                <div class="rank-title">SURVIVAL RANK</div>
+                <div class="rank-value" id="survivalRank">S-RANK</div>
+                <p class="rank-description" id="rankDesc">
+                    Exceptional performance! Your strategic decisions and resource management ensured maximum survival odds.
+                </p>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-button secondary" onclick="window.location.href='story.html'">← BACK TO STORY</button>
+                <button class="action-button" onclick="playAgain()">PLAY AGAIN →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            // Load results from localStorage
+            const health = parseInt(localStorage.getItem('missionHealth')) || 0;
+            const stamina = parseInt(localStorage.getItem('missionStamina')) || 0;
+            const score = parseInt(localStorage.getItem('missionScore')) || 0;
+            const status = localStorage.getItem('missionStatus') || 'failed';
+
+            // Update UI based on status
+            if (status === 'success') {
+                document.getElementById('statusIcon').textContent = '✓';
+                document.getElementById('statusIcon').style.color = '#28a745';
+                document.getElementById('resultTitle').textContent = 'MISSION COMPLETE';
+                document.getElementById('resultTitle').classList.add('success');
+                document.getElementById('resultSubtitle').textContent = 'YOU SURVIVED THE INFECTED ZONE';
+            } else {
+                document.getElementById('statusIcon').textContent = '✗';
+                document.getElementById('statusIcon').style.color = '#dc3545';
+                document.getElementById('resultTitle').textContent = 'MISSION FAILED';
+                document.getElementById('resultTitle').classList.add('failed');
+                document.getElementById('resultSubtitle').textContent = 'YOU DIDN\'T MAKE IT...';
+            }
+
+            // Update stats
+            document.getElementById('finalHealth').textContent = health + '%';
+            document.getElementById('finalStamina').textContent = stamina + '%';
+            document.getElementById('totalScore').textContent = score;
+
+            // Color code health and stamina
+            const healthEl = document.getElementById('finalHealth');
+            const staminaEl = document.getElementById('finalStamina');
+            
+            if (health <= 0) healthEl.classList.add('failed');
+            else if (health < 30) healthEl.style.color = '#dc3545';
+            else if (health > 70) healthEl.classList.add('success');
+            
+            if (stamina <= 0) staminaEl.classList.add('failed');
+            else if (stamina < 30) staminaEl.style.color = '#dc3545';
+            else if (stamina > 70) staminaEl.classList.add('success');
+
+            // Calculate rank
+            const rank = calculateRank(score, health, stamina);
+            document.getElementById('survivalRank').textContent = rank.rank;
+            document.getElementById('rankDesc').textContent = rank.description;
+        });
+
+        function calculateRank(score, health, stamina) {
+            const totalStats = health + stamina;
+            
+            if (score >= 80 && totalStats >= 150) {
+                return {
+                    rank: 'S-RANK',
+                    description: 'Exceptional performance! Your strategic decisions and resource management ensured maximum survival odds.'
+                };
+            } else if (score >= 60 && totalStats >= 120) {
+                return {
+                    rank: 'A-RANK',
+                    description: 'Outstanding survival skills! You made smart choices and managed resources effectively.'
+                };
+            } else if (score >= 40 && totalStats >= 90) {
+                return {
+                    rank: 'B-RANK',
+                    description: 'Good job surviving! Your decisions kept you alive, though there\'s room for improvement.'
+                };
+            } else if (score >= 20 && totalStats >= 50) {
+                return {
+                    rank: 'C-RANK',
+                    description: 'You survived, but barely. Consider your choices more carefully next time.'
+                };
+            } else {
+                return {
+                    rank: 'D-RANK',
+                    description: 'Critical condition. Your survival was more luck than skill. Train harder, survivor.'
+                };
+            }
+        }
+
+        function playAgain() {
+            // Clear mission results
+            localStorage.removeItem('missionHealth');
+            localStorage.removeItem('missionStamina');
+            localStorage.removeItem('missionScore');
+            localStorage.removeItem('missionStatus');
+            
+            // Redirect to character selection
+            window.location.href = 'character.html';
+        }
+    </script>
+</body>
+</html>

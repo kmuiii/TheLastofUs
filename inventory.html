@@ -12,6 +12,40 @@
             box-sizing: border-box;
         }
 
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
         body {
             font-family: 'Antonio', sans-serif;
             background-image: url('images/bg inventory.png');
@@ -33,6 +67,194 @@
             z-index: 0;
         }
 
+        /* Popup Overlay */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .popup-container {
+            background: linear-gradient(135deg, #6a6a6a 0%, #4a4a4a 50%, #3a3a3a 100%);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            box-shadow: 
+                0 25px 80px rgba(0, 0, 0, 0.95), 
+                0 15px 40px rgba(0, 0, 0, 0.8),
+                inset 0 2px 4px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+            max-width: 600px;
+            width: 90%;
+            z-index: 1001;
+            animation: scaleIn 0.4s ease-out;
+        }
+
+        .popup-container::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            background-color: rgba(20, 19, 19, 0.95);
+            background-image: url('images/Group 8 (1).png');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: multiply;
+            pointer-events: none;
+            border-radius: 4px;
+            z-index: 1;
+        }
+
+        .popup-content {
+            position: relative;
+            z-index: 2;
+            padding: 40px 50px;
+            text-align: center;
+        }
+
+        .popup-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            color: #b85c38;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .popup-title {
+            font-size: 42px;
+            font-weight: 700;
+            color: #d4d4d4;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .popup-message {
+            font-size: 24px;
+            color: #a8a8a8;
+            margin-bottom: 40px;
+            letter-spacing: 1.5px;
+            line-height: 1.5;
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .popup-button {
+            padding: 18px 40px;
+            background: #6E3420;
+            border: none;
+            border-radius: 50px;
+            color: #f0f0f0;
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Antonio', sans-serif;
+            box-shadow: 0 4px 15px rgba(110, 52, 32, 0.4);
+            min-width: 180px;
+        }
+
+        .popup-button:hover {
+            background: #8B4626;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(110, 52, 32, 0.6);
+        }
+
+        .popup-button.secondary {
+            background: rgba(80, 80, 80, 0.8);
+        }
+
+        .popup-button.secondary:hover {
+            background: rgba(100, 100, 100, 0.9);
+        }
+
+        .popup-rivet {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #a8a8a8 0%, #707070 40%, #4a4a4a 80%, #2a2a2a 100%);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 2px 3px rgba(0, 0, 0, 0.6), 
+                inset 0 -1px 2px rgba(255, 255, 255, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            border: 1px solid rgba(80, 80, 80, 0.5);
+        }
+
+        .popup-rivet-tl { top: 25px; left: 25px; }
+        .popup-rivet-tr { top: 25px; right: 25px; }
+        .popup-rivet-bl { bottom: 25px; left: 25px; }
+        .popup-rivet-br { bottom: 25px; right: 25px; }
+
+        /* Flash Notification */
+        .flash-notification {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #6a6a6a 0%, #4a4a4a 50%, #3a3a3a 100%);
+            border-radius: 8px;
+            padding: 15px 25px;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.8),
+                inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            z-index: 999;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: fadeInOut 3s ease-in-out forwards;
+            border-left: 5px solid #b85c38;
+        }
+
+        .flash-notification::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(20, 19, 19, 0.95);
+            background-image: url('images/Group 8 (1).png');
+            background-size: cover;
+            background-blend-mode: multiply;
+            border-radius: 4px;
+            z-index: -1;
+        }
+
+        .flash-notification p {
+            position: relative;
+            z-index: 1;
+            font-size: 20px;
+            font-weight: 700;
+            color: #d4d4d4;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        /* Original styles */
         .navbar {
             background-color: rgba(101, 101, 101, 0.95);
             padding: 20px 60px;
@@ -98,12 +320,48 @@
             color: #b85c38;
         }
 
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         .user-info span {
             color: #d4d4d4;
             font-size: 16px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        .logout-btn {
+            background: rgba(220, 53, 69, 0.8);
+            border: 2px solid rgba(220, 53, 69, 0.6);
+            color: #f0f0f0;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Antonio', sans-serif;
+        }
+
+        .logout-btn:hover {
+            background: rgba(220, 53, 69, 1);
+            border-color: #dc3545;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
         }
 
         .main-content {
@@ -151,7 +409,11 @@
                 0 6px 20px rgba(0, 0, 0, 0.7),
                 inset 0 2px 4px rgba(255, 255, 255, 0.1),
                 inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+            animation: scaleIn 0.8s ease-out backwards;
         }
+
+        .inventory-panel:nth-child(1) { animation-delay: 0.2s; }
+        .inventory-panel:nth-child(2) { animation-delay: 0.4s; }
 
         .panel-inner {
             background-color: rgba(33, 28, 25, 0.95);
@@ -172,6 +434,8 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-bottom: 30px;
+            animation: fadeIn 1s ease-out backwards;
+            animation-delay: 0.6s;
         }
 
         .items-grid {
@@ -185,13 +449,13 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
         .item-slot {
             aspect-ratio: 1;
             background: rgba(20, 20, 20, 0.9);
-            border: 3px solid rgba(80, 80, 80, 0.5);
+            border: 3px solid rgba(184, 92, 56, 0.4);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -200,15 +464,26 @@
             transition: all 0.3s;
             position: relative;
             padding: 10px;
+            animation: scaleIn 0.5s ease-out backwards;
+        }
+
+        .item-slot:nth-child(1) { animation-delay: 0.7s; }
+        .item-slot:nth-child(2) { animation-delay: 0.8s; }
+        .item-slot:nth-child(3) { animation-delay: 0.9s; }
+        .item-slot:nth-child(4) { animation-delay: 1.0s; }
+        .item-slot:nth-child(5) { animation-delay: 1.1s; }
+        .item-slot:nth-child(6) { animation-delay: 1.2s; }
+        .item-slot:nth-child(7) { animation-delay: 1.3s; }
+        .item-slot:nth-child(8) { animation-delay: 1.4s; }
+        .item-slot:nth-child(9) { animation-delay: 1.5s; }
+
+        .item-slot.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
         }
 
         .item-slot.dragging {
             opacity: 0.5;
-            cursor: grabbing;
-        }
-
-        .item-slot.has-item {
-            border-color: rgba(120, 120, 120, 0.8);
         }
 
         .item-slot img {
@@ -216,23 +491,6 @@
             max-height: 100%;
             object-fit: contain;
             pointer-events: none;
-        }
-
-        /* Border warna untuk kategori */
-        .item-slot[data-category="tools"] {
-            border-color: rgba(184, 92, 56, 0.4);
-        }
-
-        .item-slot[data-category="weapons"] {
-            border-color: rgba(184, 92, 56, 0.4);
-        }
-
-        .item-slot[data-category="medkits"] {
-            border-color: rgba(184, 92, 56, 0.4);
-        }
-
-        .item-slot[data-category="throwables"] {
-            border-color: rgba(184, 92, 56, 0.4);
         }
 
         .backpack-slot {
@@ -245,18 +503,32 @@
             justify-content: center;
             transition: all 0.3s;
             padding: 10px;
-            max-height: 140px;
+            position: relative;
+            animation: scaleIn 0.5s ease-out backwards;
         }
+
+        .backpack-slot:nth-child(1) { animation-delay: 0.7s; }
+        .backpack-slot:nth-child(2) { animation-delay: 0.8s; }
+        .backpack-slot:nth-child(3) { animation-delay: 0.9s; }
+        .backpack-slot:nth-child(4) { animation-delay: 1.0s; }
+        .backpack-slot:nth-child(5) { animation-delay: 1.1s; }
+        .backpack-slot:nth-child(6) { animation-delay: 1.2s; }
 
         .backpack-slot.drag-over {
             background: rgba(184, 92, 56, 0.3);
             border-color: #b85c38;
+            transform: scale(1.05);
         }
 
         .backpack-slot img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            cursor: grab;
+        }
+
+        .backpack-slot img.dragging {
+            opacity: 0.3;
         }
 
         .backpack-info {
@@ -265,6 +537,8 @@
             border-radius: 8px;
             padding: 25px 30px;
             margin-bottom: 25px;
+            animation: fadeIn 1s ease-out backwards;
+            animation-delay: 0.8s;
         }
 
         .item-counter {
@@ -300,6 +574,8 @@
             padding: 15px 18px;
             border-radius: 4px;
             margin-top: 20px;
+            animation: fadeIn 1s ease-out backwards;
+            animation-delay: 1s;
         }
 
         .tip-label {
@@ -336,7 +612,13 @@
             border: 2px solid;
             opacity: 0.5;
             transition: all 0.3s;
+            animation: scaleIn 0.5s ease-out backwards;
         }
+
+        .category-badge:nth-child(1) { animation-delay: 0.9s; }
+        .category-badge:nth-child(2) { animation-delay: 1.0s; }
+        .category-badge:nth-child(3) { animation-delay: 1.1s; }
+        .category-badge:nth-child(4) { animation-delay: 1.2s; }
 
         .category-badge.active {
             opacity: 1;
@@ -380,6 +662,8 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 15px;
+            animation: fadeIn 1s ease-out backwards;
+            animation-delay: 0.7s;
         }
 
         .category-item {
@@ -389,7 +673,13 @@
             margin-bottom: 12px;
             cursor: pointer;
             user-select: none;
+            animation: fadeIn 1s ease-out backwards;
         }
+
+        .category-item:nth-child(1) { animation-delay: 0.8s; }
+        .category-item:nth-child(2) { animation-delay: 0.9s; }
+        .category-item:nth-child(3) { animation-delay: 1.0s; }
+        .category-item:nth-child(4) { animation-delay: 1.1s; }
 
         .checkbox {
             width: 24px;
@@ -450,12 +740,28 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            animation: scaleIn 0.5s ease-out backwards;
         }
+
+        .action-button:nth-child(1) { animation-delay: 1.3s; }
+        .action-button:nth-child(2) { animation-delay: 1.4s; }
 
         .action-button:hover {
             background: #8B4626;
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(110, 52, 32, 0.6);
+        }
+
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .action-button:disabled:hover {
+            background: #6E3420;
+            transform: none;
+            box-shadow: 0 4px 15px rgba(110, 52, 32, 0.4);
         }
 
         .rivet {
@@ -477,25 +783,176 @@
         .rivet-bl { bottom: 20px; left: 20px; }
         .rivet-br { bottom: 20px; right: 20px; }
 
+        /* Character Info Banner */
+        .character-banner {
+            background: rgba(20, 20, 20, 0.8);
+            border: 2px solid rgba(184, 92, 56, 0.6);
+            border-radius: 8px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            animation: slideUp 0.8s ease-out backwards;
+            animation-delay: 0.5s;
+        }
+
+        .character-banner-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 3px solid rgba(184, 92, 56, 0.4);
+        }
+
+        .character-banner-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .character-banner-info {
+            flex: 1;
+        }
+
+        .character-banner-name {
+            font-size: 32px;
+            font-weight: 700;
+            color: #d4d4d4;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .character-banner-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .character-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label-small {
+            font-size: 14px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value-small {
+            font-size: 24px;
+            font-weight: 700;
+            color: #d4d4d4;
+        }
+
+        .no-character-message {
+            text-align: center;
+            padding: 60px;
+            color: #a8a8a8;
+            font-size: 24px;
+            animation: fadeIn 1s ease-out;
+        }
+
         @media (max-width: 1200px) {
             .inventory-container {
                 grid-template-columns: 1fr;
+            }
+            
+            .popup-container {
+                width: 95%;
+                max-width: 500px;
+            }
+            
+            .popup-title {
+                font-size: 36px;
+            }
+            
+            .popup-message {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 30px 20px;
+            }
+            
+            .page-title {
+                font-size: 48px;
+            }
+            
+            .page-subtitle {
+                font-size: 20px;
+            }
+            
+            .popup-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .popup-button {
+                width: 100%;
+                max-width: 250px;
+            }
+            
+            .character-banner {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .character-banner-stats {
+                flex-direction: column;
+                gap: 15px;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Flash Notification (auto-hide) -->
+    <div id="flashNotification" class="flash-notification" style="display: none;">
+        <p id="flashMessage">Please select a character first!</p>
+    </div>
+
+    <!-- Popup untuk karakter belum dipilih -->
+    <div id="characterPopup" class="popup-overlay" style="display: none;">
+        <div class="popup-container">
+            <div class="popup-rivet popup-rivet-tl"></div>
+            <div class="popup-rivet popup-rivet-tr"></div>
+            <div class="popup-rivet popup-rivet-bl"></div>
+            <div class="popup-rivet popup-rivet-br"></div>
+            
+            <div class="popup-content">
+                <div class="popup-icon">⚠️</div>
+                <h2 class="popup-title">SELECT CHARACTER FIRST</h2>
+                <p class="popup-message">
+                    You need to select a character before accessing your inventory. Each character has different equipment preferences and stats.
+                </p>
+                <div class="popup-buttons">
+                    <button class="popup-button secondary" onclick="closePopup()">CANCEL</button>
+                    <button class="popup-button" onclick="goToCharacter()">SELECT CHARACTER →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Original Content -->
     <nav class="navbar">
         <div class="logo">THE LAST OF US</div>
         <div style="display: flex; align-items: center; gap: 60px; position: relative; z-index: 1;">
-            <div class="user-info">
-                <span id="userGreeting">HI, USERNAME</span>
+            <div class="user-section">
+                <div class="user-info">
+                    <span id="userGreeting">HI, USERNAME</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">LOGOUT</button>
             </div>
             <ul class="nav-menu">
-                <li onclick="window.location.href='story.html'">STORY</li>
-                <li onclick="window.location.href='character.html'">CHARACTER</li>
+                <li onclick="goToCharacter()">CHARACTER</li>
                 <li class="active">INVENTORY</li>
-                <li onclick="window.location.href='detail.html'">DETAIL</li>
+                <li onclick="goToDetail()">DETAIL</li>
             </ul>
         </div>
     </nav>
@@ -506,7 +963,39 @@
             <p class="page-subtitle">DRAG ITEM TO YOUR BACKPACK</p>
         </div>
 
-        <div class="inventory-container">
+        <!-- Character Info Banner (akan muncul jika character sudah dipilih) -->
+        <div id="characterBanner" class="character-banner" style="display: none;">
+            <div class="character-banner-image">
+                <img id="bannerCharacterImage" src="" alt="Character">
+            </div>
+            <div class="character-banner-info">
+                <h3 class="character-banner-name" id="bannerCharacterName">CHARACTER NAME</h3>
+                <div class="character-banner-stats">
+                    <div class="character-stat">
+                        <span class="stat-label-small">HEALTH</span>
+                        <span class="stat-value-small" id="bannerHealth">100%</span>
+                    </div>
+                    <div class="character-stat">
+                        <span class="stat-label-small">STAMINA</span>
+                        <span class="stat-value-small" id="bannerStamina">100%</span>
+                    </div>
+                    <div class="character-stat">
+                        <span class="stat-label-small">BACKPACK SLOTS</span>
+                        <span class="stat-value-small"><span id="bannerItemCount">0</span>/6</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message jika belum pilih character -->
+        <div id="noCharacterMessage" class="no-character-message" style="display: none;">
+            <p>Please select a character first to access the inventory.</p>
+            <button class="action-button" onclick="goToCharacter()" style="margin-top: 30px; max-width: 300px; margin-left: auto; margin-right: auto;">
+                SELECT CHARACTER →
+            </button>
+        </div>
+
+        <div id="inventoryContainer" class="inventory-container" style="display: none;">
             <!-- Available Gear Panel -->
             <div class="inventory-panel">
                 <div class="rivet rivet-tl"></div>
@@ -518,48 +1007,31 @@
                     <h2 class="panel-title">AVAILABLE GEAR</h2>
                     
                     <div class="items-grid" id="availableGear">
-                        <!-- Item 1: Wrench (Tools - Red) -->
-                        <div class="item-slot has-item" data-category="tools" data-item-id="1" draggable="true">
-                            <img src="images/senter.png" alt="Wrench">
+                        <div class="item-slot" data-category="tools" data-item-id="1" draggable="true">
+                            <img src="images/senter.png" alt="Flashlight">
                         </div>
-                        
-                        <!-- Item 2: Pistol (Weapons - Yellow) -->
-                        <div class="item-slot has-item" data-category="weapons" data-item-id="2" draggable="true">
+                        <div class="item-slot" data-category="weapons" data-item-id="2" draggable="true">
                             <img src="images/pistol.png" alt="Pistol">
                         </div>
-                        
-                        <!-- Item 3: Knife (Weapons - Yellow) -->
-                        <div class="item-slot has-item" data-category="weapons" data-item-id="3" draggable="true">
+                        <div class="item-slot" data-category="weapons" data-item-id="3" draggable="true">
                             <img src="images/pisau.png" alt="Knife">
                         </div>
-                        
-                        <!-- Item 4: Axe (Tools - Red) -->
-                        <div class="item-slot has-item" data-category="weapons" data-item-id="4" draggable="true">
+                        <div class="item-slot" data-category="weapons" data-item-id="4" draggable="true">
                             <img src="images/kapak.png" alt="Axe">
                         </div>
-                        
-                        <!-- Item 5: Compass (Tools - Red) -->
-                        <div class="item-slot has-item" data-category="tools" data-item-id="5" draggable="true">
+                        <div class="item-slot" data-category="tools" data-item-id="5" draggable="true">
                             <img src="images/kompas.png" alt="Compass">
                         </div>
-                        
-                        <!-- Item 6: Rifle (Weapons - Yellow) -->
-                        <div class="item-slot has-item" data-category="weapons" data-item-id="6" draggable="true">
+                        <div class="item-slot" data-category="weapons" data-item-id="6" draggable="true">
                             <img src="images/tembakan.png" alt="Rifle">
                         </div>
-                        
-                        <!-- Item 7: Med Kit (Medkits - Green) -->
-                        <div class="item-slot has-item" data-category="medkits" data-item-id="7" draggable="true">
+                        <div class="item-slot" data-category="medkits" data-item-id="7" draggable="true">
                             <img src="images/medkit.png" alt="Med Kit">
                         </div>
-                        
-                        <!-- Item 8: Bow (Weapons - Yellow) -->
-                        <div class="item-slot has-item" data-category="weapons" data-item-id="8" draggable="true">
+                        <div class="item-slot" data-category="weapons" data-item-id="8" draggable="true">
                             <img src="images/panah.png" alt="Bow">
                         </div>
-                        
-                        <!-- Item 9: Grenade (Throwables - Blue) -->
-                        <div class="item-slot has-item" data-category="throwables" data-item-id="9" draggable="true">
+                        <div class="item-slot" data-category="throwables" data-item-id="9" draggable="true">
                             <img src="images/granat.png" alt="Grenade">
                         </div>
                     </div>
@@ -605,7 +1077,6 @@
                         <div class="backpack-slot" data-slot="5"></div>
                     </div>
 
-                    <!-- Backpack Info Section -->
                     <div class="backpack-info">
                         <div class="item-counter">
                             <span class="counter-label">Items Selected:</span>
@@ -637,6 +1108,25 @@
     </div>
 
     <script>
+        // Character data
+        const characterData = {
+            'Ellie': {
+                image: 'images/ellie.jpg',
+                health: 85,
+                stamina: 90
+            },
+            'Joel': {
+                image: 'images/joel.jpg',
+                health: 95,
+                stamina: 80
+            },
+            'Abby': {
+                image: 'images/abby.jpg',
+                health: 90,
+                stamina: 95
+            }
+        };
+
         const categories = {
             medkits: false,
             weapons: false,
@@ -650,37 +1140,311 @@
             "Stealth weapons like bows are quieter than firearms.",
             "Tools can help you craft essential items in the field.",
             "Throwables are effective for crowd control situations.",
-            "Heavy weapons slow you down - pack wisely.",
-            "A compass can save your life when navigation fails."
+            "Heavy weapons slow you down - pack wisely."
         ];
 
         let currentTipIndex = 0;
         let itemCount = 0;
+        let draggedElement = null;
+        let dragSource = null; // 'gear' or 'backpack'
 
-        // Load username
         window.addEventListener('DOMContentLoaded', function() {
+            // Load username
             const username = localStorage.getItem('username');
             if (username) {
                 document.getElementById('userGreeting').textContent = 'HI, ' + username.toUpperCase();
             }
             
-            setupDragAndDrop();
-            rotateTips();
+            // Check if character is selected
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            
+            if (!selectedCharacter) {
+                // Jika belum pilih karakter, tampilkan popup
+                setTimeout(() => {
+                    showCharacterPopup();
+                }, 500);
+            } else {
+                // Load character data dan tampilkan inventory
+                loadCharacterData(selectedCharacter);
+                setupDragAndDrop();
+                rotateTips();
+            }
         });
+
+        function loadCharacterData(characterName) {
+            const charData = characterData[characterName];
+            
+            if (charData) {
+                // Tampilkan character banner
+                document.getElementById('characterBanner').style.display = 'flex';
+                document.getElementById('inventoryContainer').style.display = 'grid';
+                document.getElementById('noCharacterMessage').style.display = 'none';
+                
+                // Update banner info
+                document.getElementById('bannerCharacterImage').src = charData.image;
+                document.getElementById('bannerCharacterName').textContent = characterName.toUpperCase();
+                document.getElementById('bannerHealth').textContent = charData.health + '%';
+                document.getElementById('bannerStamina').textContent = charData.stamina + '%';
+                document.getElementById('bannerItemCount').textContent = itemCount;
+                
+                // Load saved inventory jika ada
+                const savedItems = JSON.parse(localStorage.getItem('backpackItems'));
+                if (savedItems && savedItems.length > 0) {
+                    // Pre-populate backpack from saved items
+                    setTimeout(() => {
+                        loadSavedInventory(savedItems);
+                    }, 100);
+                }
+            }
+        }
+
+        function loadSavedInventory(savedItems) {
+            savedItems.forEach(itemName => {
+                // Find corresponding item slot
+                const itemSlot = document.querySelector(`#availableGear .item-slot img[alt="${itemName}"]`);
+                if (itemSlot && itemSlot.parentElement) {
+                    const slot = itemSlot.parentElement;
+                    const category = slot.getAttribute('data-category');
+                    const itemId = slot.getAttribute('data-item-id');
+                    
+                    // Find first empty backpack slot
+                    const backpackSlot = document.querySelector('.backpack-slot:empty');
+                    if (backpackSlot) {
+                        // Create new image in backpack
+                        const newImg = document.createElement('img');
+                        newImg.src = itemSlot.src;
+                        newImg.alt = itemSlot.alt;
+                        newImg.setAttribute('data-item-id', itemId);
+                        newImg.setAttribute('data-category', category);
+                        newImg.draggable = true;
+                        
+                        // Add drag events to backpack image
+                        newImg.addEventListener('dragstart', handleBackpackItemDragStart);
+                        newImg.addEventListener('dragend', handleBackpackItemDragEnd);
+                        
+                        backpackSlot.appendChild(newImg);
+                        
+                        // Disable in available gear
+                        slot.classList.add('disabled');
+                        slot.draggable = false;
+                        
+                        // Update UI
+                        updateCategory(category, true);
+                        updateCategoryBadge(category, true);
+                        itemCount++;
+                        updateItemCount();
+                    }
+                }
+            });
+        }
+
+        function showCharacterPopup() {
+            document.getElementById('characterPopup').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Tampilkan pesan bahwa belum pilih character
+            document.getElementById('noCharacterMessage').style.display = 'block';
+            document.getElementById('inventoryContainer').style.display = 'none';
+            document.getElementById('characterBanner').style.display = 'none';
+        }
+
+        function closePopup() {
+            document.getElementById('characterPopup').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function goToCharacter() {
+            closePopup();
+            window.location.href = 'character.html';
+        }
+
+        function goToDetail() {
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            
+            if (!selectedCharacter) {
+                showFlashNotification('Please select a character first!');
+                return;
+            }
+            
+            window.location.href = 'detail.html';
+        }
+
+        function showFlashNotification(message) {
+            const flash = document.getElementById('flashNotification');
+            const flashMsg = document.getElementById('flashMessage');
+            
+            flashMsg.textContent = message;
+            flash.style.display = 'block';
+            
+            setTimeout(() => {
+                flash.style.display = 'none';
+            }, 3000);
+        }
 
         function rotateTips() {
             setInterval(() => {
                 currentTipIndex = (currentTipIndex + 1) % survivalTips.length;
-                document.getElementById('tipText').style.opacity = '0';
+                const tipEl = document.getElementById('tipText');
+                tipEl.style.opacity = '0';
                 setTimeout(() => {
-                    document.getElementById('tipText').textContent = survivalTips[currentTipIndex];
-                    document.getElementById('tipText').style.opacity = '1';
+                    tipEl.textContent = survivalTips[currentTipIndex];
+                    tipEl.style.opacity = '1';
                 }, 300);
             }, 8000);
         }
 
+        function setupDragAndDrop() {
+            // Available Gear slots
+            document.querySelectorAll('#availableGear .item-slot').forEach(slot => {
+                slot.addEventListener('dragstart', handleGearDragStart);
+                slot.addEventListener('dragend', handleGearDragEnd);
+            });
+
+            // Backpack slots
+            document.querySelectorAll('.backpack-slot').forEach(slot => {
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('dragleave', handleDragLeave);
+                slot.addEventListener('drop', handleBackpackDrop);
+            });
+
+            // Available Gear area untuk return items
+            document.getElementById('availableGear').addEventListener('dragover', handleDragOver);
+            document.getElementById('availableGear').addEventListener('drop', handleGearAreaDrop);
+        }
+
+        function handleGearDragStart(e) {
+            if (e.currentTarget.classList.contains('disabled')) {
+                e.preventDefault();
+                return;
+            }
+            
+            draggedElement = e.currentTarget;
+            dragSource = 'gear';
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleGearDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            if (e.currentTarget.classList.contains('backpack-slot')) {
+                e.currentTarget.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            if (e.currentTarget.classList.contains('backpack-slot')) {
+                e.currentTarget.classList.remove('drag-over');
+            }
+        }
+
+        function handleBackpackDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            const targetSlot = e.currentTarget;
+            
+            // Jika dari Available Gear dan slot kosong
+            if (dragSource === 'gear' && draggedElement && !targetSlot.querySelector('img')) {
+                const category = draggedElement.getAttribute('data-category');
+                const itemId = draggedElement.getAttribute('data-item-id');
+                const imgSrc = draggedElement.querySelector('img').src;
+                const imgAlt = draggedElement.querySelector('img').alt;
+                
+                // Create new image in backpack
+                const newImg = document.createElement('img');
+                newImg.src = imgSrc;
+                newImg.alt = imgAlt;
+                newImg.setAttribute('data-item-id', itemId);
+                newImg.setAttribute('data-category', category);
+                newImg.draggable = true;
+                
+                // Add drag events to backpack image
+                newImg.addEventListener('dragstart', handleBackpackItemDragStart);
+                newImg.addEventListener('dragend', handleBackpackItemDragEnd);
+                
+                targetSlot.appendChild(newImg);
+                
+                // Disable in available gear
+                draggedElement.classList.add('disabled');
+                draggedElement.draggable = false;
+                
+                // Update UI
+                updateCategory(category, true);
+                updateCategoryBadge(category, true);
+                itemCount++;
+                updateItemCount();
+            }
+            
+            draggedElement = null;
+            dragSource = null;
+        }
+
+        function handleBackpackItemDragStart(e) {
+            draggedElement = e.target;
+            dragSource = 'backpack';
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleBackpackItemDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleGearAreaDrop(e) {
+            e.preventDefault();
+            
+            // Hanya handle jika drag dari backpack
+            if (dragSource === 'backpack' && draggedElement) {
+                const itemId = draggedElement.getAttribute('data-item-id');
+                const category = draggedElement.getAttribute('data-category');
+                
+                // Find original slot in available gear
+                const originalSlot = document.querySelector(`#availableGear .item-slot[data-item-id="${itemId}"]`);
+                
+                if (originalSlot && originalSlot.classList.contains('disabled')) {
+                    // Remove from backpack
+                    draggedElement.remove();
+                    
+                    // Re-enable in available gear
+                    originalSlot.classList.remove('disabled');
+                    originalSlot.draggable = true;
+                    
+                    // Update UI
+                    checkAndUpdateCategory(category);
+                    itemCount--;
+                    updateItemCount();
+                }
+            }
+            
+            draggedElement = null;
+            dragSource = null;
+        }
+
+        function checkAndUpdateCategory(category) {
+            const backpackSlots = document.querySelectorAll('.backpack-slot img');
+            let stillHasCategory = false;
+            
+            backpackSlots.forEach(img => {
+                if (img.getAttribute('data-category') === category) {
+                    stillHasCategory = true;
+                }
+            });
+            
+            if (!stillHasCategory) {
+                updateCategory(category, false);
+                updateCategoryBadge(category, false);
+            }
+        }
+
         function updateItemCount() {
             document.getElementById('itemCount').textContent = itemCount;
+            if (document.getElementById('bannerItemCount')) {
+                document.getElementById('bannerItemCount').textContent = itemCount;
+            }
         }
 
         function updateCategoryBadge(category, active) {
@@ -689,70 +1453,6 @@
                 badge.classList.add('active');
             } else {
                 badge.classList.remove('active');
-            }
-        }
-
-        function setupDragAndDrop() {
-            const itemSlots = document.querySelectorAll('.item-slot[draggable="true"]');
-            const backpackSlots = document.querySelectorAll('.backpack-slot');
-
-            itemSlots.forEach(slot => {
-                slot.addEventListener('dragstart', handleDragStart);
-                slot.addEventListener('dragend', handleDragEnd);
-            });
-
-            backpackSlots.forEach(slot => {
-                slot.addEventListener('dragover', handleDragOver);
-                slot.addEventListener('dragleave', handleDragLeave);
-                slot.addEventListener('drop', handleDrop);
-            });
-        }
-
-        let draggedItem = null;
-
-        function handleDragStart(e) {
-            draggedItem = e.target;
-            e.target.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-        }
-
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
-        }
-
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.currentTarget.classList.add('drag-over');
-            e.dataTransfer.dropEffect = 'move';
-        }
-
-        function handleDragLeave(e) {
-            e.currentTarget.classList.remove('drag-over');
-        }
-
-        function handleDrop(e) {
-            e.preventDefault();
-            e.currentTarget.classList.remove('drag-over');
-            
-            if (draggedItem && e.currentTarget.classList.contains('backpack-slot')) {
-                const category = draggedItem.getAttribute('data-category');
-                
-                if (!e.currentTarget.hasChildNodes()) {
-                    // Clone item ke backpack
-                    const itemCopy = draggedItem.querySelector('img').cloneNode(true);
-                    e.currentTarget.appendChild(itemCopy);
-                    
-                    // Update kategori
-                    updateCategory(category, true);
-                    updateCategoryBadge(category, true);
-                    
-                    // Update item count
-                    itemCount++;
-                    updateItemCount();
-                    
-                    // Hide item dari available gear
-                    draggedItem.style.display = 'none';
-                }
             }
         }
 
@@ -772,43 +1472,67 @@
         }
 
         function clearBackpack() {
-            const backpackSlots = document.querySelectorAll('.backpack-slot');
-            backpackSlots.forEach(slot => {
-                slot.innerHTML = '';
+            document.querySelectorAll('.backpack-slot img').forEach(img => {
+                const itemId = img.getAttribute('data-item-id');
+                const originalSlot = document.querySelector(`#availableGear .item-slot[data-item-id="${itemId}"]`);
+                
+                if (originalSlot) {
+                    originalSlot.classList.remove('disabled');
+                    originalSlot.draggable = true;
+                }
+                
+                img.remove();
             });
             
-            // Reset categories
             Object.keys(categories).forEach(cat => {
                 updateCategory(cat, false);
                 updateCategoryBadge(cat, false);
             });
             
-            // Reset item count
             itemCount = 0;
             updateItemCount();
             
-            // Show all items again
-            const itemSlots = document.querySelectorAll('.item-slot[draggable="true"]');
-            itemSlots.forEach(slot => {
-                slot.style.display = 'flex';
-            });
+            // Show notification
+            showFlashNotification('Backpack cleared!');
         }
 
         function confirmLoadout() {
-            const backpackSlots = document.querySelectorAll('.backpack-slot');
-            let itemCount = 0;
-            
-            backpackSlots.forEach(slot => {
-                if (slot.hasChildNodes()) itemCount++;
-            });
-            
             if (itemCount === 0) {
-                alert('Please add at least one item to your backpack!');
+                showFlashNotification('Please add at least one item to your backpack!');
                 return;
             }
             
-            alert('Loadout confirmed! Redirecting to details...');
-            window.location.href = 'detail.html';
+            // Get all items from backpack
+            const backpackItems = [];
+            document.querySelectorAll('.backpack-slot img').forEach(img => {
+                const itemId = img.getAttribute('data-item-id');
+                const originalSlot = document.querySelector(`#availableGear .item-slot[data-item-id="${itemId}"]`);
+                if (originalSlot) {
+                    const itemName = originalSlot.querySelector('img').alt;
+                    backpackItems.push(itemName);
+                }
+            });
+            
+            // Save to localStorage
+            localStorage.setItem('backpackItems', JSON.stringify(backpackItems));
+            
+            // Tampilkan notifikasi sukses singkat
+            showFlashNotification('Inventory saved! Redirecting...');
+            
+            // Langsung redirect ke detail page
+            setTimeout(() => {
+                window.location.href = 'detail.html';
+            }, 500);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout? Your progress will be saved.')) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('selectedCharacter');
+                localStorage.removeItem('selectedCharacterImage');
+                localStorage.removeItem('backpackItems');
+                window.location.href = 'login.html';
+            }
         }
     </script>
 </body>

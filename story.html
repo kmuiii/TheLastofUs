@@ -194,12 +194,18 @@
             position: relative;
         }
 
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
         .user-info {
             display: flex;
             align-items: center;
             gap: 15px;
-            position: relative;
-            z-index: 1;
         }
 
         .user-info span {
@@ -208,6 +214,28 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        .logout-btn {
+            background: rgba(220, 53, 69, 0.8);
+            border: 2px solid rgba(220, 53, 69, 0.6);
+            color: #f0f0f0;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Antonio', sans-serif;
+        }
+
+        .logout-btn:hover {
+            background: rgba(220, 53, 69, 1);
+            border-color: #dc3545;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
         }
 
         @media (max-width: 1024px) {
@@ -233,15 +261,12 @@
     <nav class="navbar">
         <div class="logo">THE LAST OF US</div>
         <div style="display: flex; align-items: center; gap: 60px; position: relative; z-index: 1;">
-            <div class="user-info">
-                <span id="userGreeting">HI, USERNAME</span>
+            <div class="user-section">
+                <div class="user-info">
+                    <span id="userGreeting">HI, USERNAME</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">LOGOUT</button>
             </div>
-            <ul class="nav-menu">
-                <li class="active">STORY</li>
-                <li onclick="window.location.href='character.html'">CHARACTER</li>
-                <li onclick="window.location.href='inventory.html'">INVENTORY</li>
-                <li onclick="window.location.href='detail.html'">DETAIL</li>
-            </ul>
         </div>
     </nav>
 
@@ -266,19 +291,23 @@
     </div>
 
     <script>
-        // Cek apakah user sudah login
         window.addEventListener('DOMContentLoaded', function() {
             const isLoggedIn = localStorage.getItem('isLoggedIn');
             const username = localStorage.getItem('username');
             
             if (!isLoggedIn) {
-                // Jika belum login, redirect ke login page
                 window.location.href = 'login.html';
             } else if (username) {
-                // Update greeting dengan username
                 document.getElementById('userGreeting').textContent = 'HI, ' + username.toUpperCase();
             }
         });
+
+        function logout() {
+            if (confirm('Are you sure you want to logout? Your progress will be saved.')) {
+                localStorage.removeItem('isLoggedIn');
+                window.location.href = 'login.html';
+            }
+        }
     </script>
 </body>
 </html>
