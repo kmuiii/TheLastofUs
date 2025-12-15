@@ -1,0 +1,890 @@
+<?php
+session_start();
+require 'koneksi.php';
+require 'module.php';
+
+requireAdmin();
+
+$query = "SELECT user_id, username, email, role FROM users ORDER BY user_id DESC";
+$result = mysqli_query($conn, $query);
+$totalUsers = mysqli_num_rows($result);
+
+if (isset($_POST['delete_user'])) {
+    $id = (int) $_POST['user_id'];
+
+    // Admin tidak dapat hapus diri sendiri
+    if ($id !== $_SESSION['login_user']) {
+        mysqli_query($conn, "DELETE FROM users WHERE user_id = $id");
+    }
+
+    header("Location: admin-dashboard.php");
+    exit;
+}
+
+// Buat recent activities
+$recentQuery = "
+    SELECT username, role, created_at
+    FROM users
+    ORDER BY created_at DESC
+    LIMIT 5
+";
+$recentResult = mysqli_query($conn, $recentQuery);
+
+?>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - The Last Of Us</title>
+    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Antonio', sans-serif;
+            background-image: url('images/bg character.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #d4d4d4;
+            min-height: 100vh;
+            display: flex;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.88);
+            z-index: 0;
+        }
+
+        /* Sidebar - Hitam Solid */
+        .sidebar {
+            width: 280px;
+            background: #000000;
+            border-right: 3px solid rgba(184, 92, 56, 0.7);
+            padding: 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 6px 0 40px rgba(0, 0, 0, 0.9);
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 35px 30px;
+            border-bottom: 3px solid rgba(184, 92, 56, 0.4);
+            position: relative;
+            z-index: 1;
+            background: rgba(20, 20, 20, 0.8);
+        }
+
+        .sidebar-logo {
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .admin-badge {
+            display: inline-block;
+            background: rgba(220, 53, 69, 0.3);
+            border: 2px solid #dc3545;
+            color: #dc3545;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 25px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .menu-item {
+            padding: 20px 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #d4d4d4;
+            position: relative;
+            background: rgba(30, 30, 30, 0.3);
+            margin: 5px 0;
+        }
+
+        .menu-item:hover {
+            background: rgba(184, 92, 56, 0.25);
+            border-left-color: #b85c38;
+            color: #b85c38;
+            transform: translateX(8px);
+            box-shadow: inset 0 0 20px rgba(184, 92, 56, 0.2);
+        }
+
+        .menu-item.active {
+            background: rgba(184, 92, 56, 0.35);
+            border-left-color: #b85c38;
+            color: #b85c38;
+            box-shadow: inset 0 0 20px rgba(184, 92, 56, 0.3);
+        }
+
+        .logout-menu {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            padding: 0 30px;
+            z-index: 1;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 16px;
+            background: rgba(220, 53, 69, 0.3);
+            border: 2px solid #dc3545;
+            border-radius: 30px;
+            color: #f0f0f0;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Antonio', sans-serif;
+            letter-spacing: 1.5px;
+        }
+
+        .logout-btn:hover {
+            background: #dc3545;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.6);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 50px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header {
+            margin-bottom: 45px;
+        }
+
+        .page-title {
+            font-size: 64px;
+            font-weight: 700;
+            color: #d4d4d4;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 12px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9);
+        }
+
+        .page-subtitle {
+            font-size: 18px;
+            color: #a8a8a8;
+            letter-spacing: 1.5px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 35px;
+            margin-bottom: 45px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            border: 2px solid rgba(184, 92, 56, 0.3);
+            border-radius: 12px;
+            padding: 14px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 15px 45px rgba(0, 0, 0, 0.9), 
+                0 8px 25px rgba(0, 0, 0, 0.8),
+                inset 0 2px 4px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            background-color: rgba(10, 10, 10, 0.95);
+            background-image: url('images/Group 8 (1).png');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: multiply;
+            opacity: 0.3;
+            pointer-events: none;
+            border-radius: 6px;
+            z-index: 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(184, 92, 56, 0.6);
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.95), 
+                0 15px 40px rgba(184, 92, 56, 0.5),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-inner {
+            position: relative;
+            z-index: 1;
+            padding: 30px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #a8a8a8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 56px;
+            font-weight: 700;
+            color: #b85c38;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-change {
+            font-size: 14px;
+            color: #28a745;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* Metal rivets */
+        .rivet {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle, #a8a8a8 0%, #707070 40%, #4a4a4a 80%, #2a2a2a 100%);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 2px 3px rgba(0, 0, 0, 0.6), 
+                inset 0 -1px 2px rgba(255, 255, 255, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            border: 1px solid rgba(80, 80, 80, 0.5);
+        }
+
+        .rivet-tl { top: 18px; left: 18px; }
+        .rivet-tr { top: 18px; right: 18px; }
+        .rivet-bl { bottom: 18px; left: 18px; }
+        .rivet-br { bottom: 18px; right: 18px; }
+
+        /* Tables Container */
+        .data-table-container {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            border: 2px solid rgba(184, 92, 56, 0.3);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 35px;
+            position: relative;
+            box-shadow: 
+                0 15px 45px rgba(0, 0, 0, 0.9), 
+                0 8px 25px rgba(0, 0, 0, 0.8),
+                inset 0 2px 4px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .data-table-container::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            background-color: rgba(10, 10, 10, 0.95);
+            background-image: url('images/Group 8 (1).png');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: multiply;
+            opacity: 0.3;
+            pointer-events: none;
+            border-radius: 6px;
+            z-index: 0;
+        }
+
+        .table-inner {
+            position: relative;
+            z-index: 1;
+            padding: 35px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .table-title {
+            font-size: 32px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #d4d4d4;
+        }
+
+        .refresh-btn {
+            padding: 14px 28px;
+            background: rgba(184, 92, 56, 0.3);
+            border: 2px solid #b85c38;
+            border-radius: 30px;
+            color: #b85c38;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Antonio', sans-serif;
+            letter-spacing: 1.5px;
+        }
+
+        .refresh-btn:hover {
+            background: #b85c38;
+            color: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(184, 92, 56, 0.6);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(184, 92, 56, 0.25);
+            border-radius: 8px;
+        }
+
+        th {
+            padding: 20px 18px;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+            color: #b85c38;
+            border-bottom: 3px solid rgba(184, 92, 56, 0.5);
+        }
+
+        td {
+            padding: 20px 18px;
+            border-bottom: 1px solid rgba(100, 100, 100, 0.3);
+            font-size: 15px;
+            color: #d4d4d4;
+        }
+
+        tbody tr {
+            transition: all 0.3s;
+        }
+
+        tbody tr:hover {
+            background: rgba(184, 92, 56, 0.15);
+            transform: translateX(5px);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .badge-ellie {
+            background: rgba(40, 167, 69, 0.3);
+            color: #28a745;
+            border: 2px solid #28a745;
+        }
+
+        .badge-joel {
+            background: rgba(255, 193, 7, 0.3);
+            color: #ffc107;
+            border: 2px solid #ffc107;
+        }
+
+        .badge-abby {
+            background: rgba(0, 123, 255, 0.3);
+            color: #007bff;
+            border: 2px solid #007bff;
+        }
+
+        .badge-none {
+            background: rgba(100, 100, 100, 0.3);
+            color: #888;
+            border: 2px solid #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 30px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 72px;
+            margin-bottom: 25px;
+            opacity: 0.6;
+        }
+
+        .empty-state-text {
+            font-size: 22px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #888;
+            font-weight: 700;
+        }
+
+        /* Menu Icon Styles */
+        .menu-icon {
+            margin-right: 15px;
+            font-size: 20px;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 240px;
+            }
+            .main-content {
+                margin-left: 240px;
+                padding: 40px;
+            }
+            .page-title {
+                font-size: 48px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .main-content {
+                padding: 30px 20px;
+            }
+            .sidebar {
+                width: 70px;
+            }
+            .sidebar-logo, .admin-badge, .menu-item span:not(.menu-icon) {
+                display: none;
+            }
+            .sidebar-header {
+                padding: 20px 10px;
+            }
+            .menu-item {
+                padding: 20px 10px;
+                text-align: center;
+            }
+            .menu-icon {
+                margin-right: 0;
+                font-size: 24px;
+            }
+            .logout-btn span {
+                display: none;
+            }
+            .logout-btn::before {
+                content: "🚪";
+                font-size: 24px;
+            }
+            .main-content {
+                margin-left: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Hitam -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">THE LAST OF US</div>
+            <span class="admin-badge">ADMIN PANEL</span>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="menu-item active" onclick="showSection('dashboard')">
+                <span>Dashboard</span>
+            </li>
+            <li class="menu-item" onclick="showSection('users')">
+                <span>Users</span>
+            </li>
+            <li class="menu-item" onclick="showSection('characters')">
+                <span>Characters</span>
+            </li>
+            <li class="menu-item" onclick="showSection('inventory')">
+                <span>Inventory</span>
+            </li>
+        </ul>
+
+        <div class="logout-menu">
+            <button class="logout-btn" onclick="logout()">
+                <span>LOGOUT</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <div id="dashboard-section">
+            <div class="page-header">
+                <h1 class="page-title">DASHBOARD</h1>
+                <p class="page-subtitle">Welcome back, Admin! Here's your overview.</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="rivet rivet-tl"></div>
+                    <div class="rivet rivet-tr"></div>
+                    <div class="rivet rivet-bl"></div>
+                    <div class="rivet rivet-br"></div>
+                    <div class="stat-inner">
+                        <div class="stat-label">Total Users</div>
+                        <div class="stat-value"><?= $totalUsers ?></div>
+                        <div class="stat-change">↑ All time</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="rivet rivet-tl"></div>
+                    <div class="rivet rivet-tr"></div>
+                    <div class="rivet rivet-bl"></div>
+                    <div class="rivet rivet-br"></div>
+                    <div class="stat-inner">
+                        <div class="stat-label">Active Characters</div>
+                        <div class="stat-value" id="activeCharacters">3</div>
+                        <div class="stat-change">↑ Selected</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="rivet rivet-tl"></div>
+                    <div class="rivet rivet-tr"></div>
+                    <div class="rivet rivet-bl"></div>
+                    <div class="rivet rivet-br"></div>
+                    <div class="stat-inner">
+                        <div class="stat-label">Most Popular</div>
+                        <div class="stat-value" id="popularCharacter" style="font-size: 36px;">-</div>
+                        <div class="stat-change">Character</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="rivet rivet-tl"></div>
+                    <div class="rivet rivet-tr"></div>
+                    <div class="rivet rivet-bl"></div>
+                    <div class="rivet rivet-br"></div>
+                    <div class="stat-inner">
+                        <div class="stat-label">Avg Inventory</div>
+                        <div class="stat-value" id="avgInventory">0</div>
+                        <div class="stat-change">Items per user</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <div class="rivet rivet-tl"></div>
+                <div class="rivet rivet-tr"></div>
+                <div class="rivet rivet-bl"></div>
+                <div class="rivet rivet-br"></div>
+                <div class="table-inner">
+                    <div class="table-header">
+                        <h2 class="table-title">Recent Activity</h2>
+                        <button class="refresh-btn" onclick="loadData()">Refresh</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Character</th>
+                                <th>Registered</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php if (mysqli_num_rows($recentResult) > 0): ?>
+                            <?php while ($row = mysqli_fetch_assoc($recentResult)): ?>
+                                <tr>
+                                    <td><strong><?= htmlspecialchars($row['username']) ?></strong></td>
+
+                                    <td>
+                                        <span class="badge <?= $row['role'] === 'admin' ? 'badge-joel' : 'badge-ellie' ?>">
+                                            <?= strtoupper($row['role']) ?>
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <?= date('d M Y H:i', strtotime($row['created_at'])) ?>
+                                    </td>
+
+                                    <td>
+                                        <span style="color:#28a745;font-size:18px;">●</span> Active
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="4" class="empty-state">
+                                    <div class="empty-state-icon">📊</div>
+                                    <div class="empty-state-text">No activity yet</div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Section -->
+        <div id="users-section" style="display: none;">
+            <div class="page-header">
+                <h1 class="page-title">USER MANAGEMENT</h1>
+                <p class="page-subtitle">Manage all registered users</p>
+            </div>
+
+            <div class="data-table-container">
+                <div class="rivet rivet-tl"></div>
+                <div class="rivet rivet-tr"></div>
+                <div class="rivet rivet-bl"></div>
+                <div class="rivet rivet-br"></div>
+                <div class="table-inner">
+                    <div class="table-header">
+                        <h2 class="table-title">All Users</h2>
+                        <div>
+                           <button class="refresh-btn" onclick="location.reload()">Refresh</button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Registered</th>
+                                <th>Character</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (mysqli_num_rows($result) > 0): ?>
+                                <?php while ($user = mysqli_fetch_assoc($result)): ?>
+                                    <tr>
+                                        <td><strong><?= htmlspecialchars($user['username']) ?></strong></td>
+                                        <td><?= htmlspecialchars($user['email']) ?></td>
+                                        <td>
+                                            <span class="badge <?= $user['role'] === 'admin' ? 'badge-joel' : 'badge-ellie' ?>">
+                                                <?= strtoupper($user['role']) ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <?php if ($user['user_id'] != $_SESSION['login_user']): ?>
+                                                <form method="POST" style="display:inline">
+                                                    <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>">
+                                                    <button name="delete_user" class="refresh-btn"
+                                                            style="border-color:#dc3545;color:#dc3545">
+                                                        DELETE
+                                                    </button>
+                                                </form>
+                                            <?php else: ?>
+                                                <em>You</em>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="4" class="empty-state">
+                                        <div class="empty-state-icon">👥</div>
+                                        <div class="empty-state-text">No users found</div>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                            </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Characters Section -->
+        <div id="characters-section" style="display: none;">
+            <div class="page-header">
+                <h1 class="page-title">CHARACTER ANALYTICS</h1>
+                <p class="page-subtitle">Character selection statistics</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="rivet rivet-tl"></div>
+                    <div class="rivet rivet-tr"></div>
+                    <div class="rivet rivet-bl"></div>
+                    <div class="rivet rivet-br"></div>
+                    <div class="stat-inner">
+                        <div class="stat-label">Ellie Selected</div>
+                        <div class="stat-value" id="ellieCount">0</div>
+                        <div class="stat-change">Users</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="rivet rivet-tl"></div>
+                    <div class="rivet rivet-tr"></div>
+                    <div class="rivet rivet-bl"></div>
+                    <div class="rivet rivet-br"></div>
+                    <div class="stat-inner">
+                        <div class="stat-label">Joel Selected</div>
+                        <div class="stat-value" id="joelCount">0</div>
+                        <div class="stat-change">Users</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="rivet rivet-tl"></div>
+                    <div class="rivet rivet-tr"></div>
+                    <div class="rivet rivet-bl"></div>
+                    <div class="rivet rivet-br"></div>
+                    <div class="stat-inner">
+                        <div class="stat-label">Abby Selected</div>
+                        <div class="stat-value" id="abbyCount">0</div>
+                        <div class="stat-change">Users</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div id="inventory-section" style="display: none;">
+            <div class="page-header">
+                <h1 class="page-title">INVENTORY ANALYTICS</h1>
+                <p class="page-subtitle">Most popular items & statistics</p>
+            </div>
+
+            <div class="data-table-container">
+                <div class="rivet rivet-tl"></div>
+                <div class="rivet rivet-tr"></div>
+                <div class="rivet rivet-bl"></div>
+                <div class="rivet rivet-br"></div>
+                <div class="table-inner">
+                    <div class="empty-state" style="padding: 120px 40px;">
+                        <div class="empty-state-icon" style="font-size: 96px;">🎒</div>
+                        <div class="empty-state-text" style="font-size: 32px; margin-bottom: 20px;">Coming Soon</div>
+                        <p style="color: #666; font-size: 16px; letter-spacing: 1px;">Inventory analytics will be available once users start collecting items</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            // Inisialisasi efek hover pada stat cards
+            const statCards = document.querySelectorAll('.stat-card');
+            
+            statCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.zIndex = '1000';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.zIndex = '1';
+                });
+            });
+            
+            // Efek klik pada menu items
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+        });
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'Invalid Date';
+            
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function showSection(sectionId) {
+            const sections = ['dashboard', 'users', 'characters', 'inventory'];
+            const menuItems = document.querySelectorAll('.menu-item');
+            
+            sections.forEach(section => {
+                document.getElementById(`${section}-section`).style.display = 'none';
+            });
+            
+            document.getElementById(`${sectionId}-section`).style.display = 'block';
+            
+            menuItems.forEach(item => item.classList.remove('active'));
+            
+            const activeIndex = sections.indexOf(sectionId);
+            if (activeIndex >= 0) {
+                menuItems[activeIndex].classList.add('active');
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'logout.php';
+            }
+        }
+
+        setInterval(() => {
+            loadData();
+        }, 30000);
+    </script>
+</body>
+</html>

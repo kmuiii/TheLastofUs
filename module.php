@@ -13,13 +13,19 @@ function redirectByRole() {
 
 # Memastikan user adalah admin
 function requireAdmin() {
-    requireLogin();
+    if (!isset($_SESSION['login_user'])) {
+        // belum login
+        header('Location: login.php');
+        exit;
+    }
 
     if ($_SESSION['role'] !== 'admin') {
+        // login tapi bukan admin
         header('Location: index.php');
         exit;
     }
 }
+
 
 # Pastiin user udah login
 function requireLogin() {
@@ -32,10 +38,15 @@ function requireLogin() {
 # Mencegah user yang sudah login mengakses halaman auth
 function preventAuthPage() {
     if (isset($_SESSION['login_user'])) {
-        header('Location: index.php');
+        if ($_SESSION['role'] === 'admin') {
+            header("Location: admin-dashboard.php");
+        } else {
+            header("Location: index.php");
+        }
         exit;
     }
 }
+
 
 # Login user dan set session
 function loginUser($conn, $input, $password) {

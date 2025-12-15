@@ -8,9 +8,20 @@ preventAuthPage();
 $error = null;
 
 if (isset($_POST['login'])) {
-    if (loginUser($conn, $_POST['email'], $_POST['password'])) {
-        header("Location: index.php");
+
+    $input    = $_POST['email'];
+    $password = $_POST['password'];
+
+    if (loginUser($conn, $input, $password)) {
+
+        // Redirect berdasarkan role
+        if ($_SESSION['role'] === 'admin') {
+            header("Location: admin-dashboard.php");
+        } else {
+            header("Location: index.php");
+        }
         exit;
+
     } else {
         $error = "Email/Username atau password salah";
     }
