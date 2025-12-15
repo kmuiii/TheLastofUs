@@ -1,3 +1,66 @@
+<?php
+session_start();
+require 'koneksi.php';
+require 'module.php';
+
+preventAuthPage();
+
+// Initialize reset step
+if (!isset($_SESSION['reset_step'])) {
+    $_SESSION['reset_step'] = 1;
+}
+
+$step = $_SESSION['reset_step'];
+
+// Send reset code
+if (isset($_POST['send_code'])) {
+    $result = sendResetCode($conn, $_POST['email']);
+
+    if ($result['status']) {
+        $_SESSION['reset_step'] = 2;
+        $_SESSION['reset_email'] = $_POST['email'];
+        $_SESSION['reset_code']  = $result['code'];
+        $step = 2;
+    } else {
+        $error = $result['message'];
+    }
+}
+
+// Verify reset code
+if (isset($_POST['verify_code'])) {
+    $result = verifyResetCode($conn, $_POST['code']);
+
+    if ($result['status']) {
+        $_SESSION['reset_step'] = 3;
+        $_SESSION['reset_verified'] = true;
+        $step = 3;
+    } else {
+        $error = $result['message'];
+    }
+}
+
+// Reset password
+if (isset($_POST['reset_password'])) {
+    $result = resetPassword(
+        $conn,
+        $_POST['password'],
+        $_POST['confirm']
+    );
+
+    if ($result['status']) {
+        // bersihkan session reset
+        unset($_SESSION['reset_step']);
+        unset($_SESSION['reset_email']);
+        unset($_SESSION['reset_code']);
+
+        header('Location: login.php?reset=success');
+        exit;
+    } else {
+        $error = $result['message'];
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -382,239 +445,87 @@
                 </p>
 
                 <div class="step-indicator">
-                    <span class="step active" id="step1">1</span>
-                    <span class="step" id="step2">2</span>
-                    <span class="step" id="step3">3</span>
+                    <span class="step <?= $step >= 1 ? 'active' : '' ?> <?= $step > 1 ? 'completed' : '' ?>">1</span>
+                    <span class="step <?= $step == 2 ? 'active' : '' ?> <?= $step > 2 ? 'completed' : '' ?>">2</span>
+                    <span class="step <?= $step == 3 ? 'active' : '' ?>">3</span>
                 </div>
+
+                <?php if (!empty($error)): ?>
+                <div style="
+                    background: rgba(220,53,69,.15);
+                    color:#dc3545;
+                    padding:12px;
+                    margin-bottom:15px;
+                    border-radius:6px;
+                    text-align:center;">
+                    <?= htmlspecialchars($error) ?>
+                </div>
+                <?php endif; ?>
 
                 <!-- Step 1: Email Input -->
-                <div class="form-section" id="emailSection">
-                    <div class="input-group">
-                        <label class="input-label">EMAIL ADDRESS</label>
-                        <input type="email" id="emailInput" placeholder="your@email.com">
-                        <span class="error-message" id="emailError">Please enter a valid registered email</span>
+                <?php if ($step === 1): ?>
+                <form method="POST">
+                    <div class="form-section">
+                        <div class="input-group">
+                            <label class="input-label">EMAIL ADDRESS</label>
+                            <input type="email" name="email" required>
+                        </div>
+
+                        <button class="action-btn" name="send_code">
+                            SEND RECOVERY CODE
+                        </button>
                     </div>
-                </div>
+                </form>
+                <?php endif; ?>
 
                 <!-- Step 2: Verification Code -->
-                <div class="form-section hidden" id="codeSection">
-                    <div class="success-message" id="codeSentMessage">
-                        <p class="success-message-text">✓ Recovery code sent to your email!</p>
-                    </div>
+                <?php if ($step === 2): ?>
+                    <form method="POST">
+                        <div class="form-section">
+                            <div class="input-group">
+                                <label class="input-label">ENTER 6-DIGIT CODE</label>
+                                <input type="text" name="code" maxlength="6" required>
+                            </div>
 
-                    <div class="input-group">
-                        <label class="input-label">ENTER 6-DIGIT CODE</label>
-                        <div class="verification-code-container">
-                            <input type="text" maxlength="1" class="code-input" id="code1">
-                            <input type="text" maxlength="1" class="code-input" id="code2">
-                            <input type="text" maxlength="1" class="code-input" id="code3">
-                            <input type="text" maxlength="1" class="code-input" id="code4">
-                            <input type="text" maxlength="1" class="code-input" id="code5">
-                            <input type="text" maxlength="1" class="code-input" id="code6">
+                            <button class="action-btn" name="verify_code">
+                                VERIFY CODE
+                            </button>
                         </div>
-                        <span class="error-message" id="codeError">Invalid code. Please try again.</span>
-                    </div>
-                </div>
+                    </form>
+
+                    <p style="color:#aaa;text-align:center">
+                        Demo Code: <b><?= htmlspecialchars($_SESSION['reset_code'] ?? '') ?></b>
+                    </p>
+                    <?php endif; ?>
+
 
                 <!-- Step 3: New Password -->
-                <div class="form-section hidden" id="passwordSection">
-                    <div class="success-message" id="passwordSuccessMessage">
-                        <p class="success-message-text">✓ Code verified! Set your new password</p>
-                    </div>
+                <?php if ($step === 3): ?>
+                <form method="POST">
+                    <div class="form-section">
+                        <div class="input-group">
+                            <label class="input-label">NEW PASSWORD</label>
+                            <input type="password" name="password" required>
+                        </div>
 
-                    <div class="input-group">
-                        <label class="input-label">NEW PASSWORD</label>
-                        <input type="password" id="newPassword" placeholder="Minimum 8 characters">
-                        <span class="error-message" id="newPasswordError">Password must be at least 8 characters</span>
-                    </div>
+                        <div class="input-group">
+                            <label class="input-label">CONFIRM PASSWORD</label>
+                            <input type="password" name="confirm" required>
+                        </div>
 
-                    <div class="input-group">
-                        <label class="input-label">CONFIRM NEW PASSWORD</label>
-                        <input type="password" id="confirmNewPassword" placeholder="Re-enter password">
-                        <span class="error-message" id="confirmNewPasswordError">Passwords do not match</span>
+                        <button class="action-btn" name="reset_password">
+                            RESET PASSWORD
+                        </button>
                     </div>
-                </div>
-            </div>
+                </form>
+                <?php endif; ?>
 
             <div class="form-footer">
-                <!-- Step 1 Buttons -->
-                <div id="step1Buttons">
-                    <button class="action-btn" onclick="sendCode()">SEND RECOVERY CODE</button>
-                </div>
-
-                <!-- Step 2 Buttons -->
-                <div id="step2Buttons" class="hidden">
-                    <button class="action-btn" onclick="verifyCode()">VERIFY CODE</button>
-                    <button class="action-btn secondary" onclick="resendCode()">RESEND CODE</button>
-                </div>
-
-                <!-- Step 3 Buttons -->
-                <div id="step3Buttons" class="hidden">
-                    <button class="action-btn" onclick="resetPassword()">RESET PASSWORD</button>
-                </div>
-
                 <div class="back-link">
-                    <a href="login.html">← BACK TO LOGIN</a>
+                    <a href="login.php">← BACK TO LOGIN</a>
                 </div>
             </div>
         </div>
     </div>
-
-    <script>
-        let currentEmail = '';
-        let verificationCode = '';
-
-        // Auto-focus next input for code
-        document.querySelectorAll('.code-input').forEach((input, index, inputs) => {
-            input.addEventListener('input', function() {
-                if (this.value.length === 1 && index < inputs.length - 1) {
-                    inputs[index + 1].focus();
-                }
-            });
-
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Backspace' && this.value === '' && index > 0) {
-                    inputs[index - 1].focus();
-                }
-            });
-        });
-
-        function sendCode() {
-            const email = document.getElementById('emailInput').value.trim();
-            const error = document.getElementById('emailError');
-            
-            if (!email || !email.includes('@')) {
-                error.classList.add('show');
-                document.getElementById('emailInput').classList.add('error');
-                return;
-            }
-
-            // Check if email exists
-            const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-            const userExists = users.some(user => user.email === email);
-
-            if (!userExists) {
-                error.textContent = 'Email not found. Please register first.';
-                error.classList.add('show');
-                document.getElementById('emailInput').classList.add('error');
-                return;
-            }
-
-            currentEmail = email;
-            verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-            
-            console.log('Verification Code:', verificationCode);
-
-            // Switch to step 2
-            document.getElementById('emailSection').classList.add('hidden');
-            document.getElementById('codeSection').classList.remove('hidden');
-            document.getElementById('codeSentMessage').classList.add('show');
-            
-            document.getElementById('step1Buttons').classList.add('hidden');
-            document.getElementById('step2Buttons').classList.remove('hidden');
-            
-            document.getElementById('step1').classList.remove('active');
-            document.getElementById('step1').classList.add('completed');
-            document.getElementById('step2').classList.add('active');
-            
-            document.getElementById('subtitleText').textContent = 'Enter the 6-digit code sent to your email';
-            
-            // Focus first code input
-            document.getElementById('code1').focus();
-        }
-
-        function verifyCode() {
-            const enteredCode = 
-                document.getElementById('code1').value +
-                document.getElementById('code2').value +
-                document.getElementById('code3').value +
-                document.getElementById('code4').value +
-                document.getElementById('code5').value +
-                document.getElementById('code6').value;
-
-            const error = document.getElementById('codeError');
-
-            if (enteredCode !== verificationCode) {
-                error.classList.add('show');
-                document.querySelectorAll('.code-input').forEach(input => {
-                    input.classList.add('error');
-                    input.value = '';
-                });
-                document.getElementById('code1').focus();
-                return;
-            }
-
-            // Switch to step 3
-            document.getElementById('codeSection').classList.add('hidden');
-            document.getElementById('passwordSection').classList.remove('hidden');
-            document.getElementById('passwordSuccessMessage').classList.add('show');
-            
-            document.getElementById('step2Buttons').classList.add('hidden');
-            document.getElementById('step3Buttons').classList.remove('hidden');
-            
-            document.getElementById('step2').classList.remove('active');
-            document.getElementById('step2').classList.add('completed');
-            document.getElementById('step3').classList.add('active');
-            
-            document.getElementById('subtitleText').textContent = 'Set your new password';
-        }
-
-        function resendCode() {
-            verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-            console.log('New Verification Code:', verificationCode);
-            
-            document.querySelectorAll('.code-input').forEach(input => {
-                input.value = '';
-                input.classList.remove('error');
-            });
-            document.getElementById('code1').focus();
-            
-            alert('New code sent! Check console for demo.');
-        }
-
-        function resetPassword() {
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmNewPassword').value;
-            
-            const newPasswordError = document.getElementById('newPasswordError');
-            const confirmPasswordError = document.getElementById('confirmNewPasswordError');
-
-            let valid = true;
-
-            if (newPassword.length < 8) {
-                newPasswordError.classList.add('show');
-                document.getElementById('newPassword').classList.add('error');
-                valid = false;
-            } else {
-                newPasswordError.classList.remove('show');
-                document.getElementById('newPassword').classList.remove('error');
-            }
-
-            if (newPassword !== confirmPassword) {
-                confirmPasswordError.classList.add('show');
-                document.getElementById('confirmNewPassword').classList.add('error');
-                valid = false;
-            } else {
-                confirmPasswordError.classList.remove('show');
-                document.getElementById('confirmNewPassword').classList.remove('error');
-            }
-
-            if (!valid) return;
-
-            // Update password
-            const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-            const userIndex = users.findIndex(user => user.email === currentEmail);
-            
-            if (userIndex !== -1) {
-                users[userIndex].password = newPassword;
-                localStorage.setItem('registeredUsers', JSON.stringify(users));
-            }
-
-            alert('Password reset successful! Redirecting to login...');
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 1500);
-        }
-    </script>
 </body>
 </html>

@@ -1,3 +1,34 @@
+<?php
+session_start();
+require 'koneksi.php';
+require 'module.php';
+
+requireLogin();
+
+$result = $_SESSION['game_result'] ?? null;
+
+if (!$result) {
+    header('Location: gameplay.php');
+    exit;
+}
+
+
+//logic play again
+if (isset($_GET['play_again'])) {
+    unset($_SESSION['game_result']);
+    unset($_SESSION['inventory']);
+    unset($_SESSION['character']);
+
+    header('Location: character.php');
+    exit;
+}
+
+if (!isset($result['health'], $result['stamina'], $result['score'], $result['status'])) {
+    header('Location: gameplay.php');
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -320,21 +351,18 @@
             </div>
 
             <div class="action-buttons">
-                <button class="action-button secondary" onclick="window.location.href='story.html'">← BACK TO STORY</button>
+                <button class="action-button secondary" onclick="window.location.href='index.php'">← BACK TO STORY</button>
                 <button class="action-button" onclick="playAgain()">PLAY AGAIN →</button>
             </div>
         </div>
     </div>
 
     <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            // Load results from localStorage
-            const health = parseInt(localStorage.getItem('missionHealth')) || 0;
-            const stamina = parseInt(localStorage.getItem('missionStamina')) || 0;
-            const score = parseInt(localStorage.getItem('missionScore')) || 0;
-            const status = localStorage.getItem('missionStatus') || 'failed';
+        const GAME_RESULT = <?= json_encode($result) ?>;
 
-            // Update UI based on status
+        window.addEventListener('DOMContentLoaded', function () {
+            const { health, stamina, score, status } = GAME_RESULT;
+
             if (status === 'success') {
                 document.getElementById('statusIcon').textContent = '✓';
                 document.getElementById('statusIcon').style.color = '#28a745';
@@ -349,24 +377,10 @@
                 document.getElementById('resultSubtitle').textContent = 'YOU DIDN\'T MAKE IT...';
             }
 
-            // Update stats
             document.getElementById('finalHealth').textContent = health + '%';
             document.getElementById('finalStamina').textContent = stamina + '%';
             document.getElementById('totalScore').textContent = score;
 
-            // Color code health and stamina
-            const healthEl = document.getElementById('finalHealth');
-            const staminaEl = document.getElementById('finalStamina');
-            
-            if (health <= 0) healthEl.classList.add('failed');
-            else if (health < 30) healthEl.style.color = '#dc3545';
-            else if (health > 70) healthEl.classList.add('success');
-            
-            if (stamina <= 0) staminaEl.classList.add('failed');
-            else if (stamina < 30) staminaEl.style.color = '#dc3545';
-            else if (stamina > 70) staminaEl.classList.add('success');
-
-            // Calculate rank
             const rank = calculateRank(score, health, stamina);
             document.getElementById('survivalRank').textContent = rank.rank;
             document.getElementById('rankDesc').textContent = rank.description;
@@ -404,15 +418,10 @@
         }
 
         function playAgain() {
-            // Clear mission results
-            localStorage.removeItem('missionHealth');
-            localStorage.removeItem('missionStamina');
-            localStorage.removeItem('missionScore');
-            localStorage.removeItem('missionStatus');
-            
-            // Redirect to character selection
-            window.location.href = 'character.html';
+            // redirect to result.php with play_again parameter
+            window.location.href = 'result.php?play_again=1';
         }
+
     </script>
 </body>
 </html>

@@ -1,3 +1,35 @@
+<?php
+session_start();
+include 'koneksi.php';
+include 'module.php';
+
+preventAuthPage();
+
+$error = null;
+
+if (isset($_POST['register'])) {
+
+    $email    = trim($_POST['email'] ?? '');
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirm  = $_POST['confirm_password'] ?? '';
+
+    if ($password !== $confirm) {
+        $error = 'Password dan konfirmasi password tidak sama';
+    } else {
+        $result = registerUser($conn, $email, $username, $password);
+
+        if ($result['status']) {
+            header('Location: login.php?register=success');
+            exit;
+        } else {
+            $error = $result['message'];
+        }
+    }
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -448,22 +480,38 @@
                     <p class="register-subtitle">REGISTRATION</p>
                     
                     <div class="form-content">
-                        <form id="registerForm">
+                        <?php if (!empty($error)) : ?>
+                            <div style="
+                                background: rgba(220,53,69,.15);
+                                color:#dc3545;
+                                padding:12px;
+                                margin-bottom:15px;
+                                border-radius:6px;
+                                font-size:14px;
+                                text-align:center;
+                                letter-spacing:1px;
+                            ">
+                                <?= htmlspecialchars($error) ?>
+                            </div>
+                        <?php endif; ?>
+                        <form id="registerForm" method="POST" action="">
+                            <input type="hidden" name="register" value="1">
+
                             <div class="input-group">
                                 <label class="input-label">Name</label>
-                                <input type="text" id="name" placeholder="Your survivor name" required>
+                                <input type="text" name="username" id="name" placeholder="Your survivor name" required>
                                 <span class="error-message" id="nameError">Name must be at least 3 characters</span>
                             </div>
 
                             <div class="input-group">
                                 <label class="input-label">Email</label>
-                                <input type="email" id="email" placeholder="survivor@tlou.com" required>
+                                <input type="email" name="email" id="email" placeholder="survivor@tlou.com" required>
                                 <span class="error-message" id="emailError">Please enter a valid email</span>
                             </div>
 
                             <div class="input-group">
                                 <label class="input-label">Password</label>
-                                <input type="password" id="password" placeholder="Minimum 8 characters" required>
+                                <input type="password" name="password" id="password" placeholder="Minimum 8 characters" required>
                                 <div class="password-strength" id="passwordStrength">
                                     <div class="strength-bar" id="strengthBar"></div>
                                 </div>
@@ -473,7 +521,7 @@
 
                             <div class="input-group">
                                 <label class="input-label">Confirm Password</label>
-                                <input type="password" id="confirmPassword" placeholder="Re-enter password" required>
+                                <input type="password" name="confirm_password" id="confirmPassword" placeholder="Re-enter password" required>
                                 <span class="error-message" id="confirmError">Passwords do not match</span>
                             </div>
                         </form>
@@ -484,7 +532,7 @@
                         
                         <div class="login-link-container">
                             <span class="login-text">ALREADY A SURVIVOR?</span>
-                            <a href="login.html" class="login-link">LOGIN</a>
+                            <a href="login.php" class="login-link">LOGIN</a>
                         </div>
                     </div>
                 </div>
@@ -623,45 +671,16 @@
             registerBtn.disabled = !allValid;
         }
 
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            if (!Object.values(validationState).every(v => v === true)) {
-                return;
+        form.addEventListener('submit', function (e) {
+            validateName();
+            validateEmail();
+            validatePassword();
+            validateConfirmPassword();
+
+            const allValid = Object.values(validationState).every(v => v === true);
+            if (!allValid) {
+                e.preventDefault();
             }
-
-            const name = nameInput.value.trim();
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-
-            // Check if email already exists
-            const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-            if (existingUsers.some(user => user.email === email)) {
-                document.getElementById('emailError').textContent = 'Email already registered';
-                emailInput.classList.add('error');
-                document.getElementById('emailError').classList.add('show');
-                return;
-            }
-
-            // Save user data
-            const newUser = {
-                name: name,
-                email: email,
-                password: password,
-                registeredAt: new Date().toISOString()
-            };
-
-            existingUsers.push(newUser);
-            localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
-
-            // Show success notification
-            const notification = document.getElementById('successNotification');
-            notification.classList.add('show');
-
-            // Redirect after 2 seconds
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 2000);
         });
     </script>
 </body>

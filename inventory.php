@@ -1,3 +1,35 @@
+<?php
+session_start();
+require 'koneksi.php';
+require 'module.php';
+
+requireLogin();
+$user = getLoggedInUser($conn);
+
+$selectedCharacter = $_SESSION['character'] ?? null;
+$inventoryItems = is_array($_SESSION['inventory'] ?? null) ? $_SESSION['inventory'] : [];
+
+$allowedCharacters = ['Ellie', 'Joel', 'Abby'];
+
+if ($selectedCharacter && !in_array($selectedCharacter, $allowedCharacters, true)) {
+    unset($_SESSION['character']);
+    header('Location: character.php');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_inventory'])) {
+    $items = json_decode($_POST['items'] ?? '[]', true);
+
+    if (is_array($items) && count($items) > 0) {
+        $_SESSION['inventory'] = $items;
+        echo json_encode(['status' => 'ok']);
+    } else {
+        echo json_encode(['status' => 'error']);
+    }
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -945,7 +977,7 @@
         <div style="display: flex; align-items: center; gap: 60px; position: relative; z-index: 1;">
             <div class="user-section">
                 <div class="user-info">
-                    <span id="userGreeting">HI, USERNAME</span>
+                    <span id="userGreeting">HI, <?= htmlspecialchars($user['username']) ?></span>
                 </div>
                 <button class="logout-btn" onclick="logout()">LOGOUT</button>
             </div>
@@ -1147,17 +1179,10 @@
         let itemCount = 0;
         let draggedElement = null;
         let dragSource = null; // 'gear' or 'backpack'
+        const selectedCharacter = <?= json_encode($selectedCharacter) ?>;
+        const savedItems = <?= json_encode($inventoryItems); ?>;
 
         window.addEventListener('DOMContentLoaded', function() {
-            // Load username
-            const username = localStorage.getItem('username');
-            if (username) {
-                document.getElementById('userGreeting').textContent = 'HI, ' + username.toUpperCase();
-            }
-            
-            // Check if character is selected
-            const selectedCharacter = localStorage.getItem('selectedCharacter');
-            
             if (!selectedCharacter) {
                 // Jika belum pilih karakter, tampilkan popup
                 setTimeout(() => {
@@ -1187,8 +1212,6 @@
                 document.getElementById('bannerStamina').textContent = charData.stamina + '%';
                 document.getElementById('bannerItemCount').textContent = itemCount;
                 
-                // Load saved inventory jika ada
-                const savedItems = JSON.parse(localStorage.getItem('backpackItems'));
                 if (savedItems && savedItems.length > 0) {
                     // Pre-populate backpack from saved items
                     setTimeout(() => {
@@ -1255,18 +1278,17 @@
 
         function goToCharacter() {
             closePopup();
-            window.location.href = 'character.html';
+            window.location.href = 'character.php';
         }
 
         function goToDetail() {
-            const selectedCharacter = localStorage.getItem('selectedCharacter');
             
             if (!selectedCharacter) {
                 showFlashNotification('Please select a character first!');
                 return;
             }
             
-            window.location.href = 'detail.html';
+            window.location.href = 'detail.php';
         }
 
         function showFlashNotification(message) {
@@ -1498,40 +1520,40 @@
 
         function confirmLoadout() {
             if (itemCount === 0) {
-                showFlashNotification('Please add at least one item to your backpack!');
+                showFlashNotification('Please add at least one item!');
                 return;
             }
-            
-            // Get all items from backpack
+
             const backpackItems = [];
             document.querySelectorAll('.backpack-slot img').forEach(img => {
-                const itemId = img.getAttribute('data-item-id');
-                const originalSlot = document.querySelector(`#availableGear .item-slot[data-item-id="${itemId}"]`);
-                if (originalSlot) {
-                    const itemName = originalSlot.querySelector('img').alt;
-                    backpackItems.push(itemName);
+                backpackItems.push(img.alt);
+            });
+
+            fetch('inventory.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body:
+                    'save_inventory=1&items=' +
+                    encodeURIComponent(JSON.stringify(backpackItems))
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    showFlashNotification('Inventory saved!');
+                    setTimeout(() => {
+                        window.location.href = 'detail.php';
+                    }, 500);
+                } else {
+                    showFlashNotification('Failed to save inventory!');
                 }
             });
-            
-            // Save to localStorage
-            localStorage.setItem('backpackItems', JSON.stringify(backpackItems));
-            
-            // Tampilkan notifikasi sukses singkat
-            showFlashNotification('Inventory saved! Redirecting...');
-            
-            // Langsung redirect ke detail page
-            setTimeout(() => {
-                window.location.href = 'detail.html';
-            }, 500);
         }
 
         function logout() {
-            if (confirm('Are you sure you want to logout? Your progress will be saved.')) {
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('selectedCharacter');
-                localStorage.removeItem('selectedCharacterImage');
-                localStorage.removeItem('backpackItems');
-                window.location.href = 'login.html';
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'logout.php';
             }
         }
     </script>

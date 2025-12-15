@@ -1,3 +1,28 @@
+<?php
+session_start();
+require 'koneksi.php';
+require 'module.php';
+unset($_SESSION['game_result']);
+
+requireLogin();
+$user = getLoggedInUser($conn);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['character'])) {
+    $_SESSION['character'] = $_POST['character'];
+    header('Location: inventory.php');
+    exit;
+}
+
+$selectedCharacter = $_SESSION['character'] ?? null;
+
+if (isset($_GET['action']) && $_GET['action'] === 'clear_character') {
+    unset($_SESSION['character']);
+    header('Location: character.php');
+    exit;
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -615,7 +640,7 @@
         <div style="display: flex; align-items: center; gap: 60px; position: relative; z-index: 1;">
             <div class="user-section">
                 <div class="user-info">
-                    <span id="userGreeting">HI, USERNAME</span>
+                    <span>HI, <?= htmlspecialchars($user['username']); ?></span>
                 </div>
                 <button class="logout-btn" onclick="showLogoutPopup()">LOGOUT</button>
             </div>
@@ -636,43 +661,27 @@
 
         <!-- Back to Inventory Button (akan muncul jika character sudah dipilih) -->
         <div class="back-to-inventory-container" id="backToInventoryContainer" style="display: none;">
-            <button class="back-to-inventory-button" onclick="window.location.href='inventory.html'">
+            <button class="back-to-inventory-button" onclick="window.location.href='inventory.php'">
                 BACK TO INVENTORY <span class="button-icon">→</span>
             </button>
         </div>
     </div>
 
     <script>
+        const selectedCharacter = <?= json_encode($selectedCharacter); ?>;
+
         const characters = [
             { name: 'Ellie', image: 'images/ellie.jpg' },
             { name: 'Joel', image: 'images/joel.jpg' },
             { name: 'Abby', image: 'images/abby.jpg' }
         ];
 
-        window.addEventListener('DOMContentLoaded', function() {
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            const username = localStorage.getItem('username');
-            const selectedCharacter = localStorage.getItem('selectedCharacter');
-            
-            if (!isLoggedIn) {
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            if (username) {
-                document.getElementById('userGreeting').textContent = 'HI, ' + username.toUpperCase();
-            }
-            
-            // Load characters based on selection status
+        window.addEventListener('DOMContentLoaded', function () {
             if (selectedCharacter) {
-                // Show only selected character
                 showSelectedCharacter(selectedCharacter);
-                // Show back to inventory button
                 document.getElementById('backToInventoryContainer').style.display = 'block';
             } else {
-                // Show all characters for selection
                 showAllCharacters();
-                // Hide back to inventory button
                 document.getElementById('backToInventoryContainer').style.display = 'none';
             }
         });
@@ -735,11 +744,21 @@
             return card;
         }
 
-        function selectCharacter(characterName, characterImage) {
-            localStorage.setItem('selectedCharacter', characterName);
-            localStorage.setItem('selectedCharacterImage', characterImage);
-            window.location.href = 'inventory.html';
+        function selectCharacter(characterName) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'character.php';
+
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type  = 'hidden';
+            hiddenInput.name  = 'character';
+            hiddenInput.value = characterName;
+
+            form.appendChild(hiddenInput);
+            document.body.appendChild(form);
+            form.submit();
         }
+
 
         function showChangeCharacterPopup() {
             document.getElementById('changeCharacterPopup').style.display = 'flex';
@@ -752,42 +771,24 @@
         }
 
         function confirmChangeCharacter() {
-            // Clear character selection
-            localStorage.removeItem('selectedCharacter');
-            localStorage.removeItem('selectedCharacterImage');
-            
-            // Clear inventory as well since character changed
-            localStorage.removeItem('backpackItems');
-            
-            closePopup();
-            showAllCharacters();
-            
-            // Hide back to inventory button after changing character
-            document.getElementById('backToInventoryContainer').style.display = 'none';
+            window.location.href = 'character.php?action=clear_character';
         }
 
+
         function goToInventory() {
-            const selectedCharacter = localStorage.getItem('selectedCharacter');
-            
             if (!selectedCharacter) {
-                // Show popup if no character selected
                 showNoCharacterPopup('inventory');
                 return;
             }
-            
-            window.location.href = 'inventory.html';
+            window.location.href = 'inventory.php';
         }
 
         function goToDetail() {
-            const selectedCharacter = localStorage.getItem('selectedCharacter');
-            
             if (!selectedCharacter) {
-                // Show popup if no character selected
                 showNoCharacterPopup('detail');
                 return;
             }
-            
-            window.location.href = 'detail.html';
+            window.location.href = 'detail.php';
         }
 
         function showNoCharacterPopup(page) {
@@ -843,7 +844,7 @@
                         </p>
                         <div class="popup-buttons">
                             <button class="popup-button secondary" onclick="this.closest('.popup-overlay').remove(); document.body.style.overflow = 'auto';">CANCEL</button>
-                            <button class="popup-button" onclick="logout()">LOGOUT</button>
+                            <button class="popup-button" onclick="window.location.href='logout.php'">LOGOUT</button>
                         </div>
                     </div>
                 </div>
@@ -851,14 +852,6 @@
             
             document.body.appendChild(popup);
             document.body.style.overflow = 'hidden';
-        }
-
-        function logout() {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('selectedCharacter');
-            localStorage.removeItem('selectedCharacterImage');
-            localStorage.removeItem('backpackItems');
-            window.location.href = 'login.html';
         }
     </script>
 </body>

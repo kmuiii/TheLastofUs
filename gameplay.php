@@ -1,3 +1,32 @@
+<?php
+session_start();
+require 'koneksi.php';
+require 'module.php';
+
+requireLogin();
+
+$selectedCharacter = $_SESSION['character'] ?? null;
+$inventoryItems = $_SESSION['inventory'] ?? [];
+
+if (!$selectedCharacter || empty($inventoryItems)) {
+    header('Location: inventory.php');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_result'])) {
+    $_SESSION['game_result'] = [
+        'health' => $_POST['health'],
+        'stamina' => $_POST['stamina'],
+        'score' => $_POST['score'],
+        'status' => $_POST['status'],
+        'remainingInventory' => json_decode($_POST['inventory'], true)
+    ];
+    echo json_encode(['status' => 'ok']);
+    exit;
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -372,21 +401,24 @@
     </div>
 
     <script>
-        // Game state
-        let gameState = {
-            character: 'Ellie',
-            health: 85,
-            stamina: 90,
-            inventory: [], // Will be loaded from saved inventory
-            currentScenario: 0,
-            score: 0
-        };
+        const SESSION_CHARACTER = <?= json_encode($selectedCharacter) ?>;
+        const SESSION_INVENTORY = <?= json_encode($inventoryItems) ?>;
 
         // Character data
         const characterData = {
             'Ellie': { image: 'images/ellie.jpg', health: 85, stamina: 90 },
             'Joel': { image: 'images/joel.jpg', health: 95, stamina: 80 },
             'Abby': { image: 'images/abby.jpg', health: 90, stamina: 95 }
+        };
+
+        // Game state
+        let gameState = {
+            character: SESSION_CHARACTER,
+            health: characterData[SESSION_CHARACTER].health,
+            stamina: characterData[SESSION_CHARACTER].stamina,
+            inventory: [...SESSION_INVENTORY],
+            currentScenario: 0,
+            score: 0
         };
 
         // Item name to image mapping
@@ -404,19 +436,6 @@
 
         // Item name mapping (for scenario requirements)
         const itemNameMapping = {
-            'Flashlight': 'Flashlight',
-            'Pistol': 'Pistol',
-            'Knife': 'Knife',
-            'Axe': 'Axe',
-            'Compass': 'Compass',
-            'Rifle': 'Rifle',
-            'Med Kit': 'Med Kit',
-            'Bow': 'Bow',
-            'Grenade': 'Grenade'
-        };
-
-        // Saved inventory data
-        const savedInventoryItems = {
             'Flashlight': 'Flashlight',
             'Pistol': 'Pistol',
             'Knife': 'Knife',
@@ -540,39 +559,19 @@
 
         window.addEventListener('DOMContentLoaded', function() {
             // Load character
-            const selectedCharacter = localStorage.getItem('selectedCharacter') || 'Ellie';
-            gameState.character = selectedCharacter;
-            const charData = characterData[selectedCharacter];
+            gameState.character = SESSION_CHARACTER;
+            const charData = characterData[SESSION_CHARACTER];
             
             gameState.health = charData.health;
             gameState.stamina = charData.stamina;
             
-            document.getElementById('charNameHUD').textContent = selectedCharacter.toUpperCase();
+            document.getElementById('charNameHUD').textContent = SESSION_CHARACTER.toUpperCase();
             document.getElementById('charAvatar').src = charData.image;
-            
-            // Load saved inventory from localStorage or use default
-            loadSavedInventory();
             
             updateHUD();
             loadInventory();
             loadScenario(0);
         });
-
-        function loadSavedInventory() {
-            // Get the actual items selected in inventory page
-            // For now, using the items from inventory.html or localStorage
-            const backpackSlots = JSON.parse(localStorage.getItem('backpackItems')) || [];
-            
-            if (backpackSlots.length > 0) {
-                // If we have saved backpack items
-                gameState.inventory = backpackSlots.filter(item => item !== null);
-            } else {
-                // Default inventory for testing
-                gameState.inventory = ['Flashlight', 'Pistol', 'Knife', 'Med Kit'];
-            }
-            
-            console.log('Loaded inventory:', gameState.inventory);
-        }
 
         function loadInventory() {
             const inventoryHUD = document.getElementById('inventoryHUD');
@@ -602,7 +601,6 @@
             if (index >= scenarios.length) {
                 // Mission complete - redirect to result
                 saveResults();
-                window.location.href = 'result.html';
                 return;
             }
 
@@ -667,7 +665,6 @@
                 setTimeout(() => {
                     alert('Mission Failed! You didn\'t survive...');
                     saveResults();
-                    window.location.href = 'result.html';
                 }, 1000);
                 return;
             }
@@ -699,13 +696,21 @@
         }
 
         function saveResults() {
-            localStorage.setItem('missionHealth', gameState.health);
-            localStorage.setItem('missionStamina', gameState.stamina);
-            localStorage.setItem('missionScore', gameState.score);
-            localStorage.setItem('missionStatus', gameState.health > 0 && gameState.stamina > 0 ? 'success' : 'failed');
-            
-            // Also save the remaining inventory
-            localStorage.setItem('remainingInventory', JSON.stringify(gameState.inventory));
+            fetch('gameplay.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body:
+                    'save_result=1' +
+                    '&health=' + gameState.health +
+                    '&stamina=' + gameState.stamina +
+                    '&score=' + gameState.score +
+                    '&status=' + (gameState.health > 0 && gameState.stamina > 0 ? 'success' : 'failed') +
+                    '&inventory=' + encodeURIComponent(JSON.stringify(gameState.inventory))
+            })
+            .then(res => res.json())
+            .then(() => {
+                window.location.href = 'result.php';
+            });
         }
     </script>
 </body>

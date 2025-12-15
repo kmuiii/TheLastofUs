@@ -1,3 +1,12 @@
+<?php
+session_start();
+require 'koneksi.php';
+require 'module.php';
+
+requireLogin();
+$user = getLoggedInUser($conn);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -263,9 +272,9 @@
         <div style="display: flex; align-items: center; gap: 60px; position: relative; z-index: 1;">
             <div class="user-section">
                 <div class="user-info">
-                    <span id="userGreeting">HI, USERNAME</span>
+                    <span>HI, <?= htmlspecialchars($user['username']); ?></span>
                 </div>
-                <button class="logout-btn" onclick="logout()">LOGOUT</button>
+                <a href="logout.php" name="logout" class="logout-btn" onclick="return confirm('Yakin ingin logout?')">LOGOUT</a>
             </div>
         </div>
     </nav>
@@ -282,32 +291,12 @@
                 takdirmu sendiri sebelum alam liar mengambilnya<br>
                 darimu.
             </p>
-            <a href="character.html" class="cta-button">
+            <a href="character.php" class="cta-button">
                 <div class="play-icon"></div>
                 MULAI CERITAMU
             </a>
         </div>
         <div class="hero-image"></div>
     </div>
-
-    <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            const username = localStorage.getItem('username');
-            
-            if (!isLoggedIn) {
-                window.location.href = 'login.html';
-            } else if (username) {
-                document.getElementById('userGreeting').textContent = 'HI, ' + username.toUpperCase();
-            }
-        });
-
-        function logout() {
-            if (confirm('Are you sure you want to logout? Your progress will be saved.')) {
-                localStorage.removeItem('isLoggedIn');
-                window.location.href = 'login.html';
-            }
-        }
-    </script>
 </body>
 </html>

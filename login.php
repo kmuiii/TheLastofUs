@@ -1,3 +1,22 @@
+<?php
+session_start();
+include 'koneksi.php';
+include 'module.php';
+
+preventAuthPage();
+
+$error = null;
+
+if (isset($_POST['login'])) {
+    if (loginUser($conn, $_POST['email'], $_POST['password'])) {
+        header("Location: index.php");
+        exit;
+    } else {
+        $error = "Email/Username atau password salah";
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -318,91 +337,41 @@
             <div class="login-content">
                 <h1 class="login-title">SURVIVOR LOGIN</h1>
                 <p class="login-subtitle">ACCESS YOUR JOURNEY</p>
-                <form id="loginForm">
+
+                <?php if (!empty($error)) : ?>
+                    <div style="
+                        background: rgba(220,53,69,.15);
+                        color:#dc3545;
+                        padding:12px;
+                        margin-bottom:15px;
+                        border-radius:6px;
+                        font-size:14px;
+                        text-align:center;
+                        letter-spacing:1px;
+                    ">
+                        <?= htmlspecialchars($error) ?>
+                    </div>
+                <?php endif; ?>
+
+                <form id="loginForm" method="POST" action="">
                     <div class="input-group">
                         <label class="input-label">EMAIL OR USERNAME</label>
-                        <input type="text" id="username" placeholder="salsabilafirrah10@gmail.com" required>
+                        <input type="text" name="email" id="username" placeholder="salsabilafirrah10@gmail.com" required>
                         <span class="error-message" id="usernameError">Please enter your email or username</span>
                     </div>
                     <div class="input-group">
                         <label class="input-label">PASSWORD</label>
-                        <input type="password" id="password" placeholder="Enter your password" required>
+                        <input type="password" name="password" id="password" placeholder="Enter your password" required>
                         <span class="error-message" id="passwordError">Please enter your password</span>
                     </div>
-                    <button type="submit" class="login-btn">LOGIN</button>
+                    <button type="submit" name="login" class="login-btn">LOGIN</button>
                     <div class="links">
-                        <a href="forgot-password.html">FORGOT PASSWORD?</a>
-                        <a href="register.html">CREATE ACCOUNT?</a>
+                        <a href="forgot-password.php">FORGOT PASSWORD?</a>
+                        <a href="register.php">CREATE ACCOUNT?</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const username = usernameInput.value.trim();
-            const password = passwordInput.value;
-            
-            const usernameError = document.getElementById('usernameError');
-            const passwordError = document.getElementById('passwordError');
-            
-            // Reset errors
-            usernameInput.classList.remove('error');
-            passwordInput.classList.remove('error');
-            usernameError.classList.remove('show');
-            passwordError.classList.remove('show');
-            
-            // Validation
-            let valid = true;
-            
-            if (!username) {
-                usernameInput.classList.add('error');
-                usernameError.classList.add('show');
-                valid = false;
-            }
-            
-            if (!password) {
-                passwordInput.classList.add('error');
-                passwordError.classList.add('show');
-                valid = false;
-            }
-            
-            if (!valid) return;
-
-            // Check credentials against registered users
-            const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-            const user = users.find(u => 
-                (u.email === username || u.name === username) && u.password === password
-            );
-
-            if (user) {
-                // Save login session
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('username', user.name);
-                localStorage.setItem('userEmail', user.email);
-                
-                // Redirect to story page
-                window.location.href = 'story.html';
-            } else {
-                // Check if it's a demo login (for testing without registration)
-                if (username && password) {
-                    // Allow demo login
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('username', username);
-                    window.location.href = 'story.html';
-                } else {
-                    usernameError.textContent = 'Invalid credentials! Please check your email/username and password.';
-                    usernameError.classList.add('show');
-                    usernameInput.classList.add('error');
-                    passwordInput.classList.add('error');
-                }
-            }
-        });
-    </script>
 </body>
 </html>

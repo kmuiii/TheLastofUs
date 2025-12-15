@@ -1,3 +1,33 @@
+<?php
+session_start();
+require 'koneksi.php';
+require 'module.php';
+
+requireLogin();
+$user = getLoggedInUser($conn);
+
+$selectedCharacter = $_SESSION['character'] ?? null;
+$inventoryItems = is_array($_SESSION['inventory'] ?? null) ? $_SESSION['inventory'] : [];
+
+$allowedCharacters = ['Ellie', 'Joel', 'Abby'];
+
+if ($selectedCharacter && !in_array($selectedCharacter, $allowedCharacters, true)) {
+    unset($_SESSION['character']);
+    header('Location: character.php');
+    exit;
+}
+
+if (!$selectedCharacter) {
+    header('Location: character.php');
+    exit;
+}
+
+if (empty($inventoryItems)) {
+    header('Location: inventory.php');
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -796,9 +826,9 @@
         <div style="display: flex; align-items: center; gap: 60px; position: relative; z-index: 1;">
             <div class="user-section">
                 <div class="user-info">
-                    <span id="userGreeting">HI, USERNAME</span>
+                    <span id="userGreeting">HI, <?= htmlspecialchars($user['username']) ?></span>
                 </div>
-                <button class="logout-btn" onclick="logout()">LOGOUT</button>
+                <button class="logout-btn" onclick="showLogoutPopup()">LOGOUT</button>
             </div>
             <ul class="nav-menu">
                 <li onclick="goToCharacter()">CHARACTER</li>
@@ -898,6 +928,9 @@
     </div>
 
     <script>
+        const selectedCharacter = <?= json_encode($selectedCharacter); ?>;
+        const inventoryItems = <?= json_encode($inventoryItems); ?>;
+        
         // Character data
         const characterData = {
             'Ellie': {
@@ -937,107 +970,70 @@
         };
 
         window.addEventListener('DOMContentLoaded', function() {
-            // Load username
-            const username = localStorage.getItem('username');
-            if (username) {
-                document.getElementById('userGreeting').textContent = 'HI, ' + username.toUpperCase();
-            }
-
-            // Check if character is selected
-            const selectedCharacter = localStorage.getItem('selectedCharacter');
-            const hasInventory = localStorage.getItem('backpackItems');
-            
-            if (!selectedCharacter) {
-                // Jika belum pilih karakter, tampilkan popup
-                showSelectionPopup('character');
-            } else if (!hasInventory) {
-                // Jika sudah pilih karakter tapi belum inventory
-                showSelectionPopup('inventory');
-            } else {
-                // Load semua data
-                loadCharacter();
-                loadInventory();
-                updateMissionStatus();
-            }
+            loadCharacter();
+            loadInventory();
+            updateMissionStatus();
         });
 
+
         function loadCharacter() {
-            const selectedCharacter = localStorage.getItem('selectedCharacter') || '';
-            
-            if (!selectedCharacter) {
-                // Show default state
-                document.getElementById('characterName').textContent = 'YOUR CHARACTER';
-                document.getElementById('characterQuote').textContent = '"Select a character in the Character section to begin your journey."';
-                
-                const healthBar = document.getElementById('healthBar');
-                const staminaBar = document.getElementById('staminaBar');
-                healthBar.style.width = '0%';
-                healthBar.textContent = '0%';
-                staminaBar.style.width = '0%';
-                staminaBar.textContent = '0%';
-                
-                return;
-            }
-            
+            if (!selectedCharacter) return;
+
             const charData = characterData[selectedCharacter];
-            
-            if (charData) {
-                document.getElementById('characterName').textContent = selectedCharacter.toUpperCase();
-                document.getElementById('characterImage').src = charData.image;
-                document.getElementById('characterQuote').textContent = charData.quote;
-                
-                // Set health and stamina
-                const healthBar = document.getElementById('healthBar');
-                const staminaBar = document.getElementById('staminaBar');
-                healthBar.style.width = charData.health + '%';
-                healthBar.textContent = charData.health + '%';
-                staminaBar.style.width = charData.stamina + '%';
-                staminaBar.textContent = charData.stamina + '%';
-                
-                // Update mission objective
-                document.getElementById('objectiveText').textContent = charData.objective;
-            }
+
+            if (!charData) return;
+
+            document.getElementById('characterName').textContent = selectedCharacter.toUpperCase();
+            document.getElementById('characterImage').src = charData.image;
+            document.getElementById('characterQuote').textContent = charData.quote;
+
+            const healthBar = document.getElementById('healthBar');
+            const staminaBar = document.getElementById('staminaBar');
+
+            healthBar.style.width = charData.health + '%';
+            healthBar.textContent = charData.health + '%';
+
+            staminaBar.style.width = charData.stamina + '%';
+            staminaBar.textContent = charData.stamina + '%';
+
+            document.getElementById('objectiveText').textContent = charData.objective;
         }
 
         function loadInventory() {
             const inventorySlots = document.querySelectorAll('#inventoryDisplay .inventory-slot');
-            
-            // Reset all slots
+
             inventorySlots.forEach(slot => {
                 slot.classList.add('empty');
                 slot.innerHTML = '<div style="color: #888; font-size: 14px;">EMPTY</div>';
             });
-            
-            // Get saved items from localStorage
-            const savedItems = JSON.parse(localStorage.getItem('backpackItems'));
-            
-            if (!savedItems || savedItems.length === 0) {
-                return;
-            }
-            
-            savedItems.forEach((itemName, index) => {
+
+            if (!inventoryItems || inventoryItems.length === 0) return;
+
+            inventoryItems.forEach((itemName, index) => {
                 if (index < inventorySlots.length && itemImages[itemName]) {
                     inventorySlots[index].classList.remove('empty');
-                    inventorySlots[index].innerHTML = `<img src="${itemImages[itemName]}" alt="${itemName}">`;
+                    inventorySlots[index].innerHTML =
+                        `<img src="${itemImages[itemName]}" alt="${itemName}">`;
                 }
             });
         }
 
         function updateMissionStatus() {
-            const selectedCharacter = localStorage.getItem('selectedCharacter');
-            const hasInventory = localStorage.getItem('backpackItems');
-            
-            if (selectedCharacter && hasInventory) {
-                document.getElementById('statusBadge').textContent = '● READY TO DEPLOY';
-                document.getElementById('statusBadge').style.color = '#28a745';
-                document.getElementById('statusBadge').style.borderColor = '#28a745';
-                document.getElementById('statusBadge').style.background = 'rgba(40, 167, 69, 0.2)';
+            const ready = selectedCharacter && inventoryItems && inventoryItems.length > 0;
+
+            if (ready) {
+                const badge = document.getElementById('statusBadge');
+                badge.textContent = '● READY TO DEPLOY';
+                badge.style.color = '#28a745';
+                badge.style.borderColor = '#28a745';
+                badge.style.background = 'rgba(40, 167, 69, 0.2)';
                 document.getElementById('startButton').disabled = false;
             } else {
-                document.getElementById('statusBadge').textContent = '⏸ NOT READY';
-                document.getElementById('statusBadge').style.color = '#b85c38';
-                document.getElementById('statusBadge').style.borderColor = '#b85c38';
-                document.getElementById('statusBadge').style.background = 'rgba(184, 92, 56, 0.2)';
+                const badge = document.getElementById('statusBadge');
+                badge.textContent = '⏸ NOT READY';
+                badge.style.color = '#b85c38';
+                badge.style.borderColor = '#b85c38';
+                badge.style.background = 'rgba(184, 92, 56, 0.2)';
                 document.getElementById('startButton').disabled = true;
             }
         }
@@ -1069,21 +1065,19 @@
 
         function goToCharacter() {
             hidePopup();
-            window.location.href = 'character.html';
+            window.location.href = 'character.php';
         }
 
         function goToInventory() {
-            const selectedCharacter = localStorage.getItem('selectedCharacter');
-            
             if (!selectedCharacter) {
-                // Jika belum pilih karakter, tampilkan flash notification
                 showFlashNotification('Please select a character first!');
                 return;
             }
-            
+
             hidePopup();
-            window.location.href = 'inventory.html';
+            window.location.href = 'inventory.php';
         }
+
 
         function showFlashNotification(message) {
             const flash = document.getElementById('flashNotification');
@@ -1098,31 +1092,48 @@
         }
 
         function startMission() {
-            const selectedCharacter = localStorage.getItem('selectedCharacter');
-            const hasInventory = localStorage.getItem('backpackItems');
-            
             if (!selectedCharacter) {
                 showSelectionPopup('character');
                 return;
             }
-            
-            if (!hasInventory) {
+
+            if (!inventoryItems || inventoryItems.length === 0) {
                 showSelectionPopup('inventory');
                 return;
             }
-            
-            // Redirect to gameplay
-            window.location.href = 'gameplay.html';
+
+            window.location.href = 'gameplay.php';
         }
 
-        function logout() {
-            if (confirm('Are you sure you want to logout? Your progress will be saved.')) {
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('selectedCharacter');
-                localStorage.removeItem('selectedCharacterImage');
-                localStorage.removeItem('backpackItems');
-                window.location.href = 'login.html';
-            }
+        function showLogoutPopup() {
+            const popup = document.createElement('div');
+            popup.className = 'popup-overlay';
+            popup.style.display = 'flex';
+            
+            popup.innerHTML = `
+                <div class="popup-container">
+                    <div class="popup-rivet popup-rivet-tl"></div>
+                    <div class="popup-rivet popup-rivet-tr"></div>
+                    <div class="popup-rivet popup-rivet-bl"></div>
+                    <div class="popup-rivet popup-rivet-br"></div>
+                    
+                    <div class="popup-content">
+                        <div class="popup-icon">⚠️</div>
+                        <h2 class="popup-title">LOGOUT CONFIRMATION</h2>
+                        <p class="popup-message">
+                            Are you sure you want to logout?<br>
+                            Your progress will be saved.
+                        </p>
+                        <div class="popup-buttons">
+                            <button class="popup-button secondary" onclick="this.closest('.popup-overlay').remove(); document.body.style.overflow = 'auto';">CANCEL</button>
+                            <button class="popup-button" onclick="window.location.href='logout.php'">LOGOUT</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            document.body.style.overflow = 'hidden';
         }
     </script>
 </body>
