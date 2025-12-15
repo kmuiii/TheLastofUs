@@ -54,4 +54,58 @@ https://www.figma.com/design/aMI1wBdJRkS5dJAGCLZMlq/UI-Pemweb?node-id=0-1&t=Ev4D
 | Role-based Access Control | Admin & User |
 
 ---
+## 🔑 Cara Login
+
+Aplikasi ini memiliki **dua jenis role**, yaitu **User** dan **Admin**.  
+Cara login dibedakan sesuai dengan role masing-masing.
+
+---
+
+### 👤 Login sebagai User
+
+Untuk masuk sebagai **User**, pengguna **WAJIB melakukan registrasi terlebih dahulu**.
+
+**Langkah-langkah:**
+1. Buka halaman **Register**
+2. Isi data:
+   - Username
+   - Email
+   - Password
+3. Submit form registrasi
+4. Setelah registrasi berhasil, user akan diarahkan ke halaman **Login**
+5. Login menggunakan **email/username** dan **password** yang telah didaftarkan
+
+📌 Setelah login:
+- User dapat memilih karakter
+- Mengakses inventory
+- Melihat detail & progress permainan
+
+---
+
+### 🛡️ Login sebagai Admin
+
+Akun **Admin** digunakan untuk mengakses **Admin Dashboard** dan **tidak perlu registrasi**.
+
+Gunakan akun berikut untuk login sebagai admin:
+
+```text
+Username : admin
+Password : admin123 
+```
+
+## 👥 Credits & Contributors
+
+Proyek **The Last of Us Web App** dikembangkan secara kolaboratif oleh tim dengan pembagian peran sebagai berikut:
+
+- 🎨 **UI/UX Designer**  
+  **Nafisah Sekar Ayu** (H1D024087)
+
+- 💻 **Frontend Developer**  
+  **Salsabila Firzah Amanina** (H1D024069)
+
+- ⚙️ **Backend Developer**  
+  **Areza Noor Pratama** (H1D024053)
+
+Terima kasih atas kontribusi dan kerja sama tim dalam pengembangan aplikasi ini 🤝
+
 
